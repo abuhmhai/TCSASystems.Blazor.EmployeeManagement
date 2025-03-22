@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using TCSASystems.Blazor.EmployeeManagement.Data;
 using TCSASystems.Blazor.EmployeeManagement.Services;
-
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -12,8 +11,8 @@ builder.Services.AddServerSideBlazor();
 builder.Services.AddScoped<IEmployeeService, EmployeeService>();
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-builder.Services.AddDbContextFactory<DataContext>(options => options.UseSqlServer(connectionString));
-
+builder.Services.AddDbContextFactory<DataContext>(options =>
+    options.UseMySql(connectionString, new MySqlServerVersion(new Version(8, 0, 36))));
 builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
 {
     options.Password.RequireDigit = false;
