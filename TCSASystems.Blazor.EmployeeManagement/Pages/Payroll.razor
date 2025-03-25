@@ -1,0 +1,93 @@
+@page "/payroll"
+@using TCSASystems.Blazor.EmployeeManagement.Models
+@inject IEmployeeService EmployeeService
+@inject IAttendanceService AttendanceService
+
+<h3>Payroll Calculation</h3>
+
+<div class="form-group">
+    <label for="startDate">Start Date:</label>
+    <input type="date" id="startDate" class="form-control" @bind="StartDate" />
+</div>
+
+<div class="form-group">
+    <label for="endDate">End Date:</label>
+    <input type="date" id="endDate" class="form-control" @bind="EndDate" />
+</div>
+
+<button class="btn btn-primary" @onclick="CalculatePayroll">Calculate Payroll</button>
+
+@if (PayrollResults != null)
+{
+    <h4>Payroll Results</h4>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Employee</th>
+                <th>Total Hours</th>
+                <th>Hourly Rate</th>
+                <th>Total Pay</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var result in PayrollResults)
+            {
+                <tr>
+                    <td>@result.Employee.Name</td>
+                    <td>@result.TotalHours</td>
+                    <td>@result.HourlyRate.ToString("C")</td>
+                    <td>@result.TotalPay.ToString("C")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private DateTime StartDate { get; set; } = DateTime.Today.AddDays(-30);
+    private DateTime EndDate { get; set; } = DateTime.Today;
+    private List<PayrollResult> PayrollResults { get; set; }
+
+    private class PayrollResult
+    {
+        public Employee Employee { get; set; }
+        public double TotalHours { get; set; }
+        public decimal HourlyRate { get; set; }
+        public decimal TotalPay { get; set; }
+    }
+
+    private async Task CalculatePayroll()
+    {
+        // Lấy dữ liệu chấm công trong khoảng thời gian
+        var attendances = await AttendanceService.GetAttendancesByDateRange(StartDate, EndDate);
+
+        // Nhóm theo nhân viên
+        var groupedAttendances = attendances
+            .GroupBy(a => a.EmployeeId)
+            .Select(g => new
+            {
+                EmployeeId = g.Key,
+                TotalHours = g.Sum(a => a.HoursWorked),
+                Employee = g.First().Employee
+            });
+
+        // Tính lương
+        PayrollResults = new List<PayrollResult>();
+        foreach (var group in groupedAttendances)
+        {
+            if (group.Employee == null) continue;
+
+            // Giả sử lương tháng (Salary) là lương cơ bản cho 160 giờ/tháng (40 giờ/tuần)
+            decimal hourlyRate = group.Employee.Salary / 160;
+            decimal totalPay = (decimal)group.TotalHours * hourlyRate;
+
+            PayrollResults.Add(new PayrollResult
+            {
+                Employee = group.Employee,
+                TotalHours = group.TotalHours,
+                HourlyRate = hourlyRate,
+                TotalPay = totalPay
+            });
+        }
+    }
+}

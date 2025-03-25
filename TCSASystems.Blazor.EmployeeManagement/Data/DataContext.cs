@@ -5,22 +5,34 @@ using TCSASystems.Blazor.EmployeeManagement.Models;
 
 namespace TCSASystems.Blazor.EmployeeManagement.Data;
 
-public class DataContext: IdentityDbContext
+public class DataContext : IdentityDbContext
 {
     public DbSet<Employee> Employees { get; set; }
+    public DbSet<Attendance> Attendances { get; set; }
+
     public DataContext(DbContextOptions options) : base(options) { }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
-        modelBuilder.Entity<Employee>().HasData(GetEmployees());
+        var employees = GetEmployees();
+        modelBuilder.Entity<Employee>().HasData(employees);
+
+        var attendances = GetAttendances(employees);
+        modelBuilder.Entity<Attendance>().HasData(attendances);
+
+        modelBuilder.Entity<Attendance>()
+            .HasOne(a => a.Employee)
+            .WithMany()
+            .HasForeignKey(a => a.EmployeeId);
     }
 
     private List<Employee> GetEmployees()
     {
         var employees = new List<Employee>();
-        var faker = new Faker("en"); // Specify the language for name generation
+        var faker = new Faker("en");
+        var random = new Random();
 
         for (int i = 1; i <= 50; i++)
         {
@@ -29,9 +41,9 @@ public class DataContext: IdentityDbContext
                 Id = i,
                 ImgUrl = faker.Internet.Avatar(),
                 Name = faker.Name.FullName(),
-                Salary = GetRandomSalary(),
-                Type = GetRandomEmployeeType(),
-                Position = GetRandomPosition()
+                Salary = GetRandomSalary(random),
+                Type = GetRandomEmployeeType(random),
+                Position = GetRandomPosition(random)
             };
 
             employees.Add(employee);
@@ -40,25 +52,47 @@ public class DataContext: IdentityDbContext
         return employees;
     }
 
-    private decimal GetRandomSalary()
+    private List<Attendance> GetAttendances(List<Employee> employees)
     {
+        var attendances = new List<Attendance>();
         var random = new Random();
-        decimal salary = random.Next(30000, 100000); // Generates a random salary between $30,000 and $100,000
-        return salary;
+
+        foreach (var employee in employees)
+        {
+            for (int i = 0; i < 20; i++)
+            {
+                DateTime date = DateTime.Today.AddDays(-random.Next(30));
+                TimeOnly checkIn = new TimeOnly(random.Next(7, 10), random.Next(0, 60));
+                TimeOnly? checkOut = new TimeOnly(random.Next(16, 19), random.Next(0, 60));
+
+                attendances.Add(new Attendance
+                {
+                    Id = attendances.Count + 1,
+                    EmployeeId = employee.Id,
+                    Date = date,
+                    CheckIn = checkIn,
+                    CheckOut = checkOut
+                    // Remove HoursWorked and IsLate assignments since they're computed
+                });
+            }
+        }
+
+        return attendances;
     }
 
-    // Method to get a random employee type
-    private EmployeeType GetRandomEmployeeType()
+    private decimal GetRandomSalary(Random random)
     {
-        var random = new Random();
+        return random.Next(30000, 100000);
+    }
+
+    private EmployeeType GetRandomEmployeeType(Random random)
+    {
         var types = Enum.GetValues(typeof(EmployeeType));
         return (EmployeeType)types.GetValue(random.Next(types.Length));
     }
 
-    // Method to get a random position
-    private Position GetRandomPosition()
+    private Position GetRandomPosition(Random random)
     {
-        var random = new Random();
         var positions = Enum.GetValues(typeof(Position));
         return (Position)positions.GetValue(random.Next(positions.Length));
     }

@@ -1,0 +1,104 @@
+@page "/timetracking"
+@using TCSASystems.Blazor.EmployeeManagement.Models
+@inject IEmployeeService EmployeeService
+@inject IAttendanceService AttendanceService
+@inject NavigationManager NavigationManager
+
+<h3>Time Tracking</h3>
+
+@if (Employees == null)
+{
+    <p>Loading employees...</p>
+}
+else
+{
+    <div class="form-group">
+        <label for="employee">Select Employee:</label>
+        <select id="employee" class="form-control" @bind="SelectedEmployeeId">
+            <option value="0">Select an employee...</option>
+            @foreach (var employee in Employees)
+            {
+                <option value="@employee.Id">@employee.Name (@employee.Position.GetDisplayName())</option>
+            }
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="date">Date:</label>
+        <input type="date" id="date" class="form-control" @bind="DateValue" />
+    </div>
+
+    <div class="form-group">
+        <label for="checkin">Check In Time:</label>
+        <input type="time" id="checkin" class="form-control" @bind="CheckInValue" />
+    </div>
+
+    <div class="form-group">
+        <label for="checkout">Check Out Time:</label>
+        <input type="time" id="checkout" class="form-control" @bind="CheckOutValue" />
+    </div>
+
+    <button class="btn btn-primary" @onclick="SaveAttendance">Save Attendance</button>
+}
+
+@code {
+    private List<Employee>? Employees { get; set; }
+    private int SelectedEmployeeId { get; set; }
+    private Attendance NewAttendance { get; set; } = new Attendance();
+
+    // Dùng DateTime? thay vì string
+    private DateTime? DateValue { get; set; }
+
+    // Dùng TimeOnly? thay vì string
+    private TimeOnly? CheckInValue { get; set; }
+    private TimeOnly? CheckOutValue { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var response = await EmployeeService.GetEmployees();
+        Employees = response.Employees; // Điều chỉnh nếu API trả về khác
+    }
+
+    private async Task SaveAttendance()
+    {
+        if (SelectedEmployeeId == 0)
+        {
+            // Không chọn nhân viên => không cho lưu
+            return;
+        }
+
+        // Gán EmployeeId
+        NewAttendance.EmployeeId = SelectedEmployeeId;
+
+        // Chuyển đổi Date từ DateTime?
+        NewAttendance.Date = DateValue ?? DateTime.Today;
+
+        // Chuyển đổi TimeOnly? sang TimeOnly
+        if (CheckInValue.HasValue)
+        {
+            NewAttendance.CheckIn = CheckInValue.Value;
+        }
+        else
+        {
+            return; // Không có CheckIn thì không lưu
+        }
+
+        if (CheckOutValue.HasValue)
+        {
+            NewAttendance.CheckOut = CheckOutValue.Value;
+        }
+
+        // Lưu dữ liệu chấm công
+        await AttendanceService.AddAttendance(NewAttendance);
+
+        // Reset form sau khi lưu
+        NewAttendance = new Attendance();
+        SelectedEmployeeId = 0;
+        DateValue = null;
+        CheckInValue = null;
+        CheckOutValue = null;
+
+        // Chuyển hướng hoặc hiển thị thông báo thành công
+        NavigationManager.NavigateTo("/attendance");
+    }
+}
