@@ -1,0 +1,96 @@
+Index: TCSASystems.Blazor.EmployeeManagement/Shared/NavMenu.razor
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><div class=\"top-row ps-3 navbar navbar-dark\">\n    <div class=\"container-fluid\">\n        <a class=\"navbar-brand\" href=\"\">TCSASystems.Blazor.EmployeeManagement</a>\n        <button title=\"Navigation menu\" class=\"navbar-toggler\" @onclick=\"ToggleNavMenu\">\n            <span class=\"navbar-toggler-icon\"></span>\n        </button>\n    </div>\n</div>\n\n<div class=\"@NavMenuCssClass nav-scrollable\" @onclick=\"ToggleNavMenu\">\n    <nav class=\"flex-column\">\n        <div class=\"nav-item px-3\">\n            <NavLink class=\"nav-link\" href=\"\" Match=\"NavLinkMatch.All\">\n                <span class=\"oi oi-home\" aria-hidden=\"true\"></span> Home\n            </NavLink>\n        </div>\n        <div class=\"nav-item px-3\">\n            <NavLink class=\"nav-link\" href=\"add-employee\">\n                <span class=\"oi oi-plus\" aria-hidden=\"true\"></span> Add Employee\n            </NavLink>\n        </div>\n        <div class=\"nav-item px-3\">\n            <NavLink class=\"nav-link\" href=\"identity/account/logout\">\n                <span class=\"oi oi-account-logout\" aria-hidden=\"true\"></span> Logout\n            </NavLink>\n        </div>\n\n    </nav>\n</div>\n\n@code {\n    private bool collapseNavMenu = true;\n\n    private string? NavMenuCssClass => collapseNavMenu ? \"collapse\" : null;\n\n    private void ToggleNavMenu()\n    {\n        collapseNavMenu = !collapseNavMenu;\n    }\n}\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/TCSASystems.Blazor.EmployeeManagement/Shared/NavMenu.razor b/TCSASystems.Blazor.EmployeeManagement/Shared/NavMenu.razor
+--- a/TCSASystems.Blazor.EmployeeManagement/Shared/NavMenu.razor	(revision 56f14316ef55e708573cdf6f279e713a057a5ca6)
++++ b/TCSASystems.Blazor.EmployeeManagement/Shared/NavMenu.razor	(date 1742836474050)
+@@ -1,6 +1,6 @@
+ <div class="top-row ps-3 navbar navbar-dark">
+     <div class="container-fluid">
+-        <a class="navbar-brand" href="">TCSASystems.Blazor.EmployeeManagement</a>
++        <a class="navbar-brand" href="">EmployeeManagement System</a>
+         <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
+             <span class="navbar-toggler-icon"></span>
+         </button>
+Index: TCSASystems.Blazor.EmployeeManagement/App.razor
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><CascadingAuthenticationState>\n    <Router AppAssembly=\"@typeof(App).Assembly\">\n        <Found Context=\"routeData\">\n            <AuthorizeRouteView RouteData=\"@routeData\" DefaultLayout=\"@typeof(MainLayout)\" />\n            <FocusOnNavigate RouteData=\"@routeData\" Selector=\"h1\" />\n        </Found>\n        <NotFound>\n            <PageTitle>Not found</PageTitle>\n            <LayoutView Layout=\"@typeof(MainLayout)\">\n                <p role=\"alert\">Sorry, there's nothing at this address.</p>\n            </LayoutView>\n        </NotFound>\n    </Router>\n</CascadingAuthenticationState>\n\n\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/TCSASystems.Blazor.EmployeeManagement/App.razor b/TCSASystems.Blazor.EmployeeManagement/App.razor
+--- a/TCSASystems.Blazor.EmployeeManagement/App.razor	(revision 56f14316ef55e708573cdf6f279e713a057a5ca6)
++++ b/TCSASystems.Blazor.EmployeeManagement/App.razor	(date 1742837371941)
+@@ -1,3 +1,4 @@
++@using EmployeeManagementSystem.Shared
+ <CascadingAuthenticationState>
+     <Router AppAssembly="@typeof(App).Assembly">
+         <Found Context="routeData">
+Index: TCSASystems.Blazor.EmployeeManagement/Pages/_Host.cshtml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>@page \"/\"\n@using Microsoft.AspNetCore.Components.Web\n@namespace TCSASystems.Blazor.EmployeeManagement.Pages\n@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers\n\n<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"utf-8\" />\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n    <base href=\"~/\" />\n    <link rel=\"stylesheet\" href=\"css/bootstrap/bootstrap.min.css\" />\n    <link href=\"css/site.css\" rel=\"stylesheet\" />\n    <link href=\"TCSASystems.Blazor.EmployeeManagement.styles.css\" rel=\"stylesheet\" />\n    <link rel=\"icon\" type=\"image/png\" href=\"favicon.png\"/>\n    <component type=\"typeof(HeadOutlet)\" render-mode=\"ServerPrerendered\" />\n</head>\n<body>\n    <component type=\"typeof(App)\" render-mode=\"ServerPrerendered\" />\n\n    <div id=\"blazor-error-ui\">\n        <environment include=\"Staging,Production\">\n            An error has occurred. This application may no longer respond until reloaded.\n        </environment>\n        <environment include=\"Development\">\n            An unhandled exception has occurred. See browser dev tools for details.\n        </environment>\n        <a href=\"\" class=\"reload\">Reload</a>\n        <a class=\"dismiss\">\uD83D\uDDD9</a>\n    </div>\n\n    <script src=\"_framework/blazor.server.js\"></script>\n</body>\n</html>\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/TCSASystems.Blazor.EmployeeManagement/Pages/_Host.cshtml b/TCSASystems.Blazor.EmployeeManagement/Pages/_Host.cshtml
+--- a/TCSASystems.Blazor.EmployeeManagement/Pages/_Host.cshtml	(revision 56f14316ef55e708573cdf6f279e713a057a5ca6)
++++ b/TCSASystems.Blazor.EmployeeManagement/Pages/_Host.cshtml	(date 1742838505497)
+@@ -1,5 +1,7 @@
+ @page "/"
++@using TCSASystems.Blazor.EmployeeManagement
+ @using Microsoft.AspNetCore.Components.Web
++@using Microsoft.AspNetCore.Mvc.TagHelpers
+ @namespace TCSASystems.Blazor.EmployeeManagement.Pages
+ @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+ 
+@@ -11,7 +13,7 @@
+     <base href="~/" />
+     <link rel="stylesheet" href="css/bootstrap/bootstrap.min.css" />
+     <link href="css/site.css" rel="stylesheet" />
+-    <link href="TCSASystems.Blazor.EmployeeManagement.styles.css" rel="stylesheet" />
++    <link href="TCSASystems.Blazor.EmployeeManagementSystem.styles.css" rel="stylesheet" />
+     <link rel="icon" type="image/png" href="favicon.png"/>
+     <component type="typeof(HeadOutlet)" render-mode="ServerPrerendered" />
+ </head>
+Index: TCSASystems.Blazor.EmployeeManagement/Shared/MainLayout.razor
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>@inherits LayoutComponentBase\n\n<PageTitle>TCSA Systems</PageTitle>\n\n<AuthorizeView>\n    <Authorized>\n    <div class=\"page\">\n        <div class=\"sidebar\">\n            <NavMenu />\n        </div>\n\n        <main>\n            <article class=\"content px-4\">\n                @Body\n            </article>\n        </main>\n    </div>\n    </Authorized>\n    <NotAuthorized>\n        <RedirectToLogin />\n    </NotAuthorized>\n</AuthorizeView>\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/TCSASystems.Blazor.EmployeeManagement/Shared/MainLayout.razor b/TCSASystems.Blazor.EmployeeManagement/Shared/MainLayout.razor
+--- a/TCSASystems.Blazor.EmployeeManagement/Shared/MainLayout.razor	(revision 56f14316ef55e708573cdf6f279e713a057a5ca6)
++++ b/TCSASystems.Blazor.EmployeeManagement/Shared/MainLayout.razor	(date 1742836127564)
+@@ -1,6 +1,6 @@
+ @inherits LayoutComponentBase
+ 
+-<PageTitle>TCSA Systems</PageTitle>
++<PageTitle>Employee Management Systems</PageTitle>
+ 
+ <AuthorizeView>
+     <Authorized>
+Index: TCSASystems.Blazor.EmployeeManagement/TCSASystems.Blazor.EmployeeManagement.csproj
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><Project Sdk=\"Microsoft.NET.Sdk.Web\">\n\n  <PropertyGroup>\n    <TargetFramework>net8.0</TargetFramework>\n    <Nullable>enable</Nullable>\n    <ImplicitUsings>enable</ImplicitUsings>\n  </PropertyGroup>\n\n  <ItemGroup>\n    <PackageReference Include=\"Bogus\" Version=\"34.0.2\" />\n    <PackageReference Include=\"Microsoft.AspNetCore.Identity\" Version=\"2.2.0\" />\n    <PackageReference Include=\"Microsoft.AspNetCore.Identity.EntityFrameworkCore\" Version=\"8.0.7\" />\n    <PackageReference Include=\"Microsoft.EntityFrameworkCore\" Version=\"8.0.7\" />\n    <PackageReference Include=\"Microsoft.EntityFrameworkCore.SqlServer\" Version=\"8.0.7\" />\n    <PackageReference Include=\"Microsoft.EntityFrameworkCore.Tools\" Version=\"8.0.7\">\n      <PrivateAssets>all</PrivateAssets>\n      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>\n    </PackageReference>\n    <PackageReference Include=\"Pomelo.EntityFrameworkCore.MySql\" Version=\"8.0.0\" />\n  </ItemGroup>\n\n</Project>\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/TCSASystems.Blazor.EmployeeManagement/TCSASystems.Blazor.EmployeeManagement.csproj b/TCSASystems.Blazor.EmployeeManagement/TCSASystems.Blazor.EmployeeManagement.csproj
+--- a/TCSASystems.Blazor.EmployeeManagement/TCSASystems.Blazor.EmployeeManagement.csproj	(revision 56f14316ef55e708573cdf6f279e713a057a5ca6)
++++ b/TCSASystems.Blazor.EmployeeManagement/TCSASystems.Blazor.EmployeeManagement.csproj	(date 1742837343890)
+@@ -4,6 +4,7 @@
+     <TargetFramework>net8.0</TargetFramework>
+     <Nullable>enable</Nullable>
+     <ImplicitUsings>enable</ImplicitUsings>
++    <RootNamespace>EmployeeManagementSystem</RootNamespace>
+   </PropertyGroup>
+ 
+   <ItemGroup>

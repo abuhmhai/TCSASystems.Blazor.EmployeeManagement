@@ -1,0 +1,93 @@
+Index: TCSASystems.Blazor.EmployeeManagement/Areas/Identity/Pages/Account/Login.cshtml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>@page\n@model LoginModel\n@{\n    <div class=\"h-100\">\n        <div class=\"mask d-flex align-items-center h-100\">\n            <div class=\"container\">\n                <div class=\"row justify-content-center p-5\">\n                    <div class=\"col-4\">\n                        <div class=\"card shadow-2-strong\" style=\"background-color: #f5f7fa;\">\n                            <div class=\"card-body\">\n\n                                <form id=\"account\" method=\"post\">\n                                    <div asp-validation-summary=\"ModelOnly\" class=\"text-danger\"></div>\n                                    <div class=\"form-floating\" style=\"margin:10px\">\n                                        <input asp-for=\"Input.Email\" class=\"form-control\" autocomplete=\"username\" aria-required=\"true\" placeholder=\"E-mail\">\n                                        <label asp-for=\"Input.Email\" class=\"form-label\"></label>\n                                    </div>\n                                    <div class=\"form-floating\" style=\"margin:10px\">\n                                        <input asp-for=\"Input.Password\" class=\"form-control\" autocomplete=\"password\" aria-required=\"true\" placeholder=\"Password\">\n                                        <label asp-for=\"Input.Password\" class=\"form-label\"></label>\n                                    </div>\n                                    <div style=\"margin:10px\">\n                                    <button id=\"login-submit\" type=\"submit\" class=\"w-100 btn btn-lg btn-primary\">Log in</button>\n                                    </div>\n                                    <div class=\"form-floating\" style=\"margin:10px\">Don't have an account? <a href=\"/Identity/Account/Register\">Sign Up</a></div>\n                                </form>\n\n                            </div>\n                        </div>\n                    </div>\n                </div>\n            </div>\n        </div>\n    </div>\n}\n
+===================================================================
+diff --git a/TCSASystems.Blazor.EmployeeManagement/Areas/Identity/Pages/Account/Login.cshtml b/TCSASystems.Blazor.EmployeeManagement/Areas/Identity/Pages/Account/Login.cshtml
+--- a/TCSASystems.Blazor.EmployeeManagement/Areas/Identity/Pages/Account/Login.cshtml	(revision 56f14316ef55e708573cdf6f279e713a057a5ca6)
++++ b/TCSASystems.Blazor.EmployeeManagement/Areas/Identity/Pages/Account/Login.cshtml	(date 1742835863579)
+@@ -8,7 +8,6 @@
+                     <div class="col-4">
+                         <div class="card shadow-2-strong" style="background-color: #f5f7fa;">
+                             <div class="card-body">
+-
+                                 <form id="account" method="post">
+                                     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                                     <div class="form-floating" style="margin:10px">
+Index: TCSASystems.Blazor.EmployeeManagement/Pages/AddEmployee.razor
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>@page \"/add-employee\"\n@using TCSASystems.Blazor.EmployeeManagement.Models.DTOs\n@using static TCSASystems.Blazor.EmployeeManagement.Components.Warning;\n\n@if (ShowWarning)\n{\n    <Warning OnClickCallback=\"DismissWarning\" Type=@Warning_Type Message=\"@Warning_Message\" />\n}\nelse\n{\n    <Card>\n        <div class=\"row user-detail-row\">\n            <h3>Add New Employee</h3>\n            <div class=\"form-group\">\n                <EditForm Model=\"@addEmployeeForm\" OnValidSubmit=\"AddNewEmployee\">\n                    <DataAnnotationsValidator />\n                    <ValidationSummary />\n                    <p>\n                        <div class=\"form-floating mb-3\">\n                            <InputText class=\"form-control\" id=\"floatingInput\" placeholder=\"Name here\" @bind-Value=\"addEmployeeForm.Name\" />\n                            <label for=\"floatingInput\">Name</label>\n                        </div>\n                        <div class=\"form-floating mb-3\">\n                            <InputNumber class=\"form-control\" id=\"floatingInput\" placeholder=\"Salary here\" @bind-Value=\"addEmployeeForm.Salary\" />\n                            <label for=\"floatingInput\">Salary</label>\n                        </div>\n                        <div class=\"form-floating mb-3\">\n                            <InputSelect shadow rounded id=\"floatingInput\" placeholder=\"Employee here\" @bind-Value=\"addEmployeeForm.Type\" class=\"form-select\">\n                                @foreach (EmployeeType type in Enum.GetValues(typeof(EmployeeType)))\n                                {\n                                    <option value=\"@type\">@type.GetDisplayName()</option>\n                                }\n                            </InputSelect>\n                            <label for=\"floatingInput\">Employment Type</label>\n                        </div>\n                        <div class=\"form-floating mb-3\">\n                            <InputSelect shadow rounded id=\"floatingInput\" placeholder=\"Position here\" @bind-Value=\"addEmployeeForm.Position\" class=\"form-select\">\n                                @foreach (Position position in Enum.GetValues(typeof(Position)))\n                                {\n                                    <option value=\"@position\">@position.GetDisplayName()</option>\n                                }\n                            </InputSelect>\n                            <label for=\"floatingInput\">Position</label>\n                        </div>\n                        <div class=\"form-floating mb-3\">\n                            <InputText class=\"form-control\" id=\"floatingInput\" placeholder=\"Img here\" @bind-Value=\"addEmployeeForm.ImgUrl\" />\n                            <label for=\"floatingInput\">Image Url</label>\n                        </div>\n                    </p>\n                    <button class=\"btn btn-outline-secondary\" type=\"submit\">Submit</button>\n                </EditForm>\n            </div>\n        </div>\n    </Card>\n}\n\n\n@code {\n    [Inject] private IEmployeeService EmployeeService { get; set; }\n    [Inject] private NavigationManager NavigationManager { get; set; }\n\n    private bool ShowWarning = false;\n    private string Warning_Message = \"\";\n    private WarningType Warning_Type;\n\n    private AddEmployeeForm addEmployeeForm = new();\n\n    private async Task AddNewEmployee()\n    {\n        var response = await EmployeeService.AddEmployee(addEmployeeForm);\n        Warning_Type = response.StatusCode == 200 ? WarningType.Success : WarningType.Error;\n        Warning_Message = response.Message;\n        ShowWarning = true;\n    }\n\n    private void DismissWarning()\n    {\n        ShowWarning = false;\n        NavigationManager.NavigateTo($\"/\");\n    }\n}\n
+===================================================================
+diff --git a/TCSASystems.Blazor.EmployeeManagement/Pages/AddEmployee.razor b/TCSASystems.Blazor.EmployeeManagement/Pages/AddEmployee.razor
+--- a/TCSASystems.Blazor.EmployeeManagement/Pages/AddEmployee.razor	(revision 56f14316ef55e708573cdf6f279e713a057a5ca6)
++++ b/TCSASystems.Blazor.EmployeeManagement/Pages/AddEmployee.razor	(date 1742838237925)
+@@ -1,6 +1,6 @@
+ @page "/add-employee"
++@using EmployeeManagementSystem.Components
+ @using TCSASystems.Blazor.EmployeeManagement.Models.DTOs
+-@using static TCSASystems.Blazor.EmployeeManagement.Components.Warning;
+ 
+ @if (ShowWarning)
+ {
+@@ -61,14 +61,14 @@
+ 
+     private bool ShowWarning = false;
+     private string Warning_Message = "";
+-    private WarningType Warning_Type;
++    private Warning.WarningType Warning_Type;
+ 
+     private AddEmployeeForm addEmployeeForm = new();
+ 
+     private async Task AddNewEmployee()
+     {
+         var response = await EmployeeService.AddEmployee(addEmployeeForm);
+-        Warning_Type = response.StatusCode == 200 ? WarningType.Success : WarningType.Error;
++        Warning_Type = response.StatusCode == 200 ? Warning.WarningType.Success : Warning.WarningType.Error;
+         Warning_Message = response.Message;
+         ShowWarning = true;
+     }
+Index: TCSASystems.Blazor.EmployeeManagement/Pages/EmployeeDetail.razor
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>@page \"/employee/{employeeId:int}\"\n@using TCSASystems.Blazor.EmployeeManagement.Models.DTOs;\n@using static TCSASystems.Blazor.EmployeeManagement.Components.Warning;\n\n@if (ShowWarning)\n{\n    <Warning OnClickCallback=\"DismissWarning\" Type=@Warning_Type Message=\"@Warning_Message\" />\n}\nelse\n{\n    <Card>\n        <div class=\"row user-detail-row\">\n            <h3>Update Employee</h3>\n            <div class=\"form-group\">\n                <EditForm Model=\"@addEmployeeForm\" OnValidSubmit=\"EditEmployee\">\n                    <DataAnnotationsValidator />\n                    <ValidationSummary />\n                    <p>\n                        <div class=\"form-floating mb-3\">\n                            <InputText class=\"form-control\" id=\"floatingInput\" placeholder=\"Name here\" @bind-Value=\"addEmployeeForm.Name\" />\n                            <label for=\"floatingInput\">Name</label>\n                        </div>\n                        <div class=\"form-floating mb-3\">\n                            <InputNumber class=\"form-control\" id=\"floatingInput\" placeholder=\"Salary here\" @bind-Value=\"addEmployeeForm.Salary\" />\n                            <label for=\"floatingInput\">Salary</label>\n                        </div>\n                        <div class=\"form-floating mb-3\">\n                            <InputSelect shadow rounded id=\"floatingInput\" placeholder=\"Employee here\" @bind-Value=\"addEmployeeForm.Type\" class=\"form-select\">\n                                @foreach (EmployeeType type in Enum.GetValues(typeof(EmployeeType)))\n                                {\n                                    <option value=\"@type\">@type.GetDisplayName()</option>\n                                }\n                            </InputSelect>\n                            <label for=\"floatingInput\">Employment Type</label>\n                        </div>\n                        <div class=\"form-floating mb-3\">\n                            <InputSelect shadow rounded id=\"floatingInput\" placeholder=\"Position here\" @bind-Value=\"addEmployeeForm.Position\" class=\"form-select\">\n                                @foreach (Position position in Enum.GetValues(typeof(Position)))\n                                {\n                                    <option value=\"@position\">@position.GetDisplayName()</option>\n                                }\n                            </InputSelect>\n                            <label for=\"floatingInput\">Position</label>\n                        </div>\n                        <div class=\"form-floating mb-3\">\n                            <InputText class=\"form-control\" id=\"floatingInput\" placeholder=\"Img here\" @bind-Value=\"addEmployeeForm.ImgUrl\" />\n                            <label for=\"floatingInput\">Image Url</label>\n                        </div>\n                    </p>\n                    <button class=\"btn btn-primary\" type=\"submit\">Update</button>\n                    <div @onclick=\"@ShowDeleteConfirmation\" class=\"btn btn-danger\" type=\"button\">Delete</div>\n                </EditForm>\n            </div>\n        </div>\n    </Card>\n}\n\n@if (ShowDeleteModal)\n{\n    <DeleteConfirmationModal>\n        <p>Are you sure you want to delete this employee?</p>\n        <div class=\"d-flex justify-content-end\">\n            <button class=\"btn btn-primary me-1\" @onclick=\"@DeleteEmployee\" type=\"button\">Confirm</button>\n            <button class=\"btn btn-danger\" @onclick=\"@CancelDelete\" type=\"button\">Cancel</button>\n        </div>\n    </DeleteConfirmationModal>\n}\n\n@code {\n    [Parameter] public int EmployeeId { get; set; }\n\n    [Inject] private IEmployeeService EmployeeService { get; set; }\n    [Inject] private NavigationManager NavigationManager { get; set; }\n\n    private AddEmployeeForm addEmployeeForm = new();\n    private bool ShowDeleteModal = false;\n    private bool ShowWarning = false;\n    private string Warning_Message = \"\";\n    private WarningType Warning_Type;\n\n    private Employee Employee;\n\n    protected override async Task OnInitializedAsync()\n    {\n        var response = await EmployeeService.GetEmployee(EmployeeId);\n\n        Employee = response.Employee;\n\n        addEmployeeForm.Name = Employee.Name;\n        addEmployeeForm.Type = Employee.Type;\n        addEmployeeForm.Position = Employee.Position;\n        addEmployeeForm.Salary = Employee.Salary;\n        addEmployeeForm.ImgUrl = Employee.ImgUrl;\n    }\n\n    private async Task EditEmployee()\n    {\n        Employee.Name = addEmployeeForm.Name;\n        Employee.Type = addEmployeeForm.Type;\n        Employee.Position = addEmployeeForm.Position;\n        Employee.Salary = addEmployeeForm.Salary;\n        Employee.ImgUrl = addEmployeeForm.ImgUrl;\n\n        var response = await EmployeeService.EditEmployee(Employee);\n        Warning_Type = response.StatusCode == 200 ? WarningType.Success : WarningType.Error;\n        Warning_Message = response.Message;\n        ShowWarning = true;\n    }\n\n    private async Task DeleteEmployee()\n    {\n        var response = await EmployeeService.DeleteEmployee(Employee);\n        Warning_Type = response.StatusCode == 200 ? WarningType.Success : WarningType.Error;\n        Warning_Message = response.Message;\n        ShowDeleteModal = false;\n        ShowWarning = true;\n\n    }\n\n    private void ShowDeleteConfirmation() => ShowDeleteModal = true;\n\n    private void CancelDelete() => ShowDeleteModal = false;\n\n    private void DismissWarning()\n    {\n        ShowWarning = false;\n        NavigationManager.NavigateTo($\"/\");\n    }\n}
+===================================================================
+diff --git a/TCSASystems.Blazor.EmployeeManagement/Pages/EmployeeDetail.razor b/TCSASystems.Blazor.EmployeeManagement/Pages/EmployeeDetail.razor
+--- a/TCSASystems.Blazor.EmployeeManagement/Pages/EmployeeDetail.razor	(revision 56f14316ef55e708573cdf6f279e713a057a5ca6)
++++ b/TCSASystems.Blazor.EmployeeManagement/Pages/EmployeeDetail.razor	(date 1742838376951)
+@@ -1,6 +1,6 @@
+ @page "/employee/{employeeId:int}"
+-@using TCSASystems.Blazor.EmployeeManagement.Models.DTOs;
+-@using static TCSASystems.Blazor.EmployeeManagement.Components.Warning;
++@using EmployeeManagementSystem.Components
++@using TCSASystems.Blazor.EmployeeManagement.Models.DTOs
+ 
+ @if (ShowWarning)
+ {
+@@ -76,7 +76,7 @@
+     private bool ShowDeleteModal = false;
+     private bool ShowWarning = false;
+     private string Warning_Message = "";
+-    private WarningType Warning_Type;
++    private Warning.WarningType Warning_Type;
+ 
+     private Employee Employee;
+ 
+@@ -102,7 +102,7 @@
+         Employee.ImgUrl = addEmployeeForm.ImgUrl;
+ 
+         var response = await EmployeeService.EditEmployee(Employee);
+-        Warning_Type = response.StatusCode == 200 ? WarningType.Success : WarningType.Error;
++        Warning_Type = response.StatusCode == 200 ? Warning.WarningType.Success : Warning.WarningType.Error;
+         Warning_Message = response.Message;
+         ShowWarning = true;
+     }
+@@ -110,7 +110,7 @@
+     private async Task DeleteEmployee()
+     {
+         var response = await EmployeeService.DeleteEmployee(Employee);
+-        Warning_Type = response.StatusCode == 200 ? WarningType.Success : WarningType.Error;
++        Warning_Type = response.StatusCode == 200 ? Warning.WarningType.Success : Warning.WarningType.Error;
+         Warning_Message = response.Message;
+         ShowDeleteModal = false;
+         ShowWarning = true;

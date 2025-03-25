@@ -1,0 +1,2731 @@
+Index: TCSASystems.Blazor.EmployeeManagement/_Imports.razor
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>@using System.Net.Http\n@using Microsoft.AspNetCore.Authorization\n@using Microsoft.AspNetCore.Components.Authorization\n@using Microsoft.AspNetCore.Components.Forms\n@using Microsoft.AspNetCore.Components.Routing\n@using Microsoft.AspNetCore.Components.Web\n@using Microsoft.AspNetCore.Components.Web.Virtualization\n@using Microsoft.JSInterop\n@using TCSASystems.Blazor.EmployeeManagement\n@using TCSASystems.Blazor.EmployeeManagement.Shared\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/TCSASystems.Blazor.EmployeeManagement/_Imports.razor b/TCSASystems.Blazor.EmployeeManagement/_Imports.razor
+--- a/TCSASystems.Blazor.EmployeeManagement/_Imports.razor	(revision 0a5d3c0deaae285972761d2202564745230df9f0)
++++ b/TCSASystems.Blazor.EmployeeManagement/_Imports.razor	(date 1742838547347)
+@@ -8,3 +8,6 @@
+ @using Microsoft.JSInterop
+ @using TCSASystems.Blazor.EmployeeManagement
+ @using TCSASystems.Blazor.EmployeeManagement.Shared
++@using TCSASystems.Blazor.EmployeeManagement.Components
++@using TCSASystems.Blazor.EmployeeManagement.Models;
++@using TCSASystems.Blazor.EmployeeManagement.Services;
+Index: TCSASystems.Blazor.EmployeeManagement/Pages/Index.razor
+===================================================================
+diff --git a/TCSASystems.Blazor.EmployeeManagement/Pages/Index.razor b/TCSASystems.Blazor.EmployeeManagement/Pages/Index.razor
+deleted file mode 100644
+--- a/TCSASystems.Blazor.EmployeeManagement/Pages/Index.razor	(revision 0a5d3c0deaae285972761d2202564745230df9f0)
++++ /dev/null	(revision 0a5d3c0deaae285972761d2202564745230df9f0)
+@@ -1,3 +0,0 @@
+-@page "/"
+-
+-
+Index: TCSASystems.Blazor.EmployeeManagement/Components/RedirectToLogin.razor
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/TCSASystems.Blazor.EmployeeManagement/Components/RedirectToLogin.razor b/TCSASystems.Blazor.EmployeeManagement/Components/RedirectToLogin.razor
+new file mode 100644
+--- /dev/null	(date 1742838547272)
++++ b/TCSASystems.Blazor.EmployeeManagement/Components/RedirectToLogin.razor	(date 1742838547272)
+@@ -0,0 +1,9 @@
++@inject NavigationManager _navigationManager;
++
++@code {
++    protected override async Task OnInitializedAsync()
++    {
++        await base.OnInitializedAsync();
++        _navigationManager.NavigateTo("Identity/Account/Login");
++    }
++}
+Index: TCSASystems.Blazor.EmployeeManagement/Components/TableButton.razor
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/TCSASystems.Blazor.EmployeeManagement/Components/TableButton.razor b/TCSASystems.Blazor.EmployeeManagement/Components/TableButton.razor
+new file mode 100644
+--- /dev/null	(date 1742838547277)
++++ b/TCSASystems.Blazor.EmployeeManagement/Components/TableButton.razor	(date 1742838547277)
+@@ -0,0 +1,10 @@
++<button 
++    @onclick="OnClickCallback" 
++    type="button" 
++    class="btn shadow-lg btn-primary p-3 rounded-circle oi oi-pencil" />
++   
++
++@code {
++    [Parameter]
++    public EventCallback OnClickCallback { get; set; }
++}
+Index: TCSASystems.Blazor.EmployeeManagement/Components/Warning.razor
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/TCSASystems.Blazor.EmployeeManagement/Components/Warning.razor b/TCSASystems.Blazor.EmployeeManagement/Components/Warning.razor
+new file mode 100644
+--- /dev/null	(date 1742838547282)
++++ b/TCSASystems.Blazor.EmployeeManagement/Components/Warning.razor	(date 1742838547282)
+@@ -0,0 +1,46 @@
++<div class="modal d-block" tabindex="-1" role="dialog">
++    <div class="modal-dialog" role="document">
++        <div class="modal-content" style="background-color:@Background">
++            <span class="close-button oi oi-x p-2" aria-hidden="true" @onclick="OnClickCallback"></span>
++            <div class="modal-body">
++                @Message
++            </div>
++        </div>
++    </div>
++</div>
++
++
++@code {
++    [Parameter] public EventCallback OnClickCallback { get; set; }
++    [Parameter] public string Message { get; set; }
++    [Parameter] public string Background { get; set; }
++    [Parameter] public WarningType Type { get; set; }
++
++    protected override async Task OnParametersSetAsync()
++    {
++        Background = Type == WarningType.Success ? "green" : "red";
++    }
++
++    public enum WarningType
++    {
++        Success,
++        Error
++    }
++}
++
++<style>
++    .modal-content {
++        font-size: 18px;
++        font-weight: 500;
++    }
++
++    .modal-body {
++        color: white;
++    }
++    
++    .close-button {
++        margin-top: -35px;
++    }
++</style>
++
++
+Index: TCSASystems.Blazor.EmployeeManagement/Components/Card.razor
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/TCSASystems.Blazor.EmployeeManagement/Components/Card.razor b/TCSASystems.Blazor.EmployeeManagement/Components/Card.razor
+new file mode 100644
+--- /dev/null	(date 1742838547285)
++++ b/TCSASystems.Blazor.EmployeeManagement/Components/Card.razor	(date 1742838547285)
+@@ -0,0 +1,19 @@
++<div class="h-100">
++    <div class="mask d-flex align-items-center h-100">
++        <div class="container">
++            <div class="row justify-content-center p-5">
++                <div class="col-12">
++                    <div class="card shadow-2-strong" style="background-color: #f5f7fa;">
++                        <div class="card-body">
++                            @ChildContent
++                        </div>
++                    </div>
++                </div>
++            </div>
++        </div>
++    </div>
++</div>
++
++@code {
++    [Parameter] public RenderFragment ChildContent { get; set; }
++}
+Index: TCSASystems.Blazor.EmployeeManagement/appsettings.json
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>{\n  \"Logging\": {\n    \"LogLevel\": {\n      \"Default\": \"Information\",\n      \"Microsoft.AspNetCore\": \"Warning\"\n    }\n  },\n  \"AllowedHosts\": \"*\"\n}\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/TCSASystems.Blazor.EmployeeManagement/appsettings.json b/TCSASystems.Blazor.EmployeeManagement/appsettings.json
+--- a/TCSASystems.Blazor.EmployeeManagement/appsettings.json	(revision 0a5d3c0deaae285972761d2202564745230df9f0)
++++ b/TCSASystems.Blazor.EmployeeManagement/appsettings.json	(date 1742838547345)
+@@ -1,4 +1,8 @@
+ {
++  "ConnectionStrings": {
++    "DefaultConnection": "Server=localhost; Database=tcsasystems;user=root;password=Kidhai2k4!!;"
++  },
++
+   "Logging": {
+     "LogLevel": {
+       "Default": "Information",
+Index: TCSASystems.Blazor.EmployeeManagement/Services/EmployeeService.cs
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/TCSASystems.Blazor.EmployeeManagement/Services/EmployeeService.cs b/TCSASystems.Blazor.EmployeeManagement/Services/EmployeeService.cs
+new file mode 100644
+--- /dev/null	(date 1742838547293)
++++ b/TCSASystems.Blazor.EmployeeManagement/Services/EmployeeService.cs	(date 1742838547293)
+@@ -0,0 +1,174 @@
++using Microsoft.EntityFrameworkCore;
++using TCSASystems.Blazor.EmployeeManagement.Data;
++using TCSASystems.Blazor.EmployeeManagement.Models;
++using TCSASystems.Blazor.EmployeeManagement.Models.DTOs;
++using TCSASystems.Blazor.EmployeeManagement.Models.Responses;
++
++namespace TCSASystems.Blazor.EmployeeManagement.Services;
++
++public interface IEmployeeService
++{
++    Task<GetEmployeesResponse> GetEmployees();
++    Task<BaseResponse> AddEmployee(AddEmployeeForm form);
++    Task<GetEmployeeResponse> GetEmployee(int id);
++    Task<BaseResponse> DeleteEmployee(Employee employee);
++    Task<BaseResponse> EditEmployee(Employee employee);
++}
++
++public class EmployeeService: IEmployeeService
++{
++    private readonly IDbContextFactory<DataContext> _factory;
++
++    public EmployeeService(IDbContextFactory<DataContext> factory)
++    {
++        _factory = factory;
++    }
++    public async Task<GetEmployeesResponse> GetEmployees()
++    {
++        var response = new GetEmployeesResponse();
++        try
++        {
++            using (var context = _factory.CreateDbContext())
++            {
++                var employees = context.Employees.ToList();
++                response.StatusCode = 200;
++                response.Message = "Success";
++                response.Employees = employees;
++            }
++        }
++        catch (Exception ex)
++        {
++            response.StatusCode = 500;
++            response.Message = "Error retrieving employees: " + ex.Message;
++            response.Employees = null;
++        }
++
++        return response;
++    }
++    public async Task<BaseResponse> AddEmployee(AddEmployeeForm form)
++    {
++        var response = new BaseResponse();
++        try
++        {
++            using (var context = _factory.CreateDbContext())
++            {
++                context.Add(new Employee
++                {
++                    Name = form.Name,
++                    Position = form.Position,
++                    Salary = form.Salary,
++                    Type = form.Type,
++                    ImgUrl = form.ImgUrl
++                });
++
++                var result = await context.SaveChangesAsync();
++
++                if (result == 1)
++                {
++                    response.StatusCode = 200;
++                    response.Message = "Employee added successfully";
++                }
++                else
++                {
++                    response.StatusCode = 400;
++                    response.Message = "Error occurred while adding the employee.";
++                }
++            }
++        }
++        catch (Exception ex)
++        {
++            response.StatusCode = 500;
++            response.Message = "Error adding employee: " + ex.Message;
++        }
++
++        return response;
++    }
++
++    public async Task<GetEmployeeResponse> GetEmployee(int id)
++    {
++        var response = new GetEmployeeResponse();
++
++        try
++        {
++            using (var context = _factory.CreateDbContext())
++            {
++                var employee = await context.Employees.FirstOrDefaultAsync(x => x.Id == id);
++                response.StatusCode = 200;
++                response.Message = "Success";
++                response.Employee = employee;
++            }
++        }
++        catch (Exception ex)
++        {
++            response.StatusCode = 500;
++            response.Message = "Error retrieving employees: " + ex.Message;
++            response.Employee = null;
++        }
++
++        return response;
++    }
++
++    public async Task<BaseResponse> DeleteEmployee(Employee employee)
++    {
++        var response = new BaseResponse();
++        try
++        {
++            using (var context = _factory.CreateDbContext())
++            {
++                context.Remove(employee);
++
++                var result = await context.SaveChangesAsync();
++
++                if (result == 1)
++                {
++                    response.StatusCode = 200;
++                    response.Message = "Employee deleted successfully";
++                }
++                else
++                {
++                    response.StatusCode = 400;
++                    response.Message = "Error occurred while deleting the employee.";
++                }
++            }
++        }
++        catch (Exception ex)
++        {
++            response.StatusCode = 500;
++            response.Message = "Error deleting employee: " + ex.Message;
++        }
++
++        return response;
++    }
++
++    public async Task<BaseResponse> EditEmployee(Employee employee)
++    {
++        var response = new BaseResponse();
++        try
++        {
++            using (var context = _factory.CreateDbContext())
++            {
++                context.Update(employee);
++
++                var result = await context.SaveChangesAsync();
++
++                if (result == 1)
++                {
++                    response.StatusCode = 200;
++                    response.Message = "Employee updated successfully";
++                }
++                else
++                {
++                    response.StatusCode = 400;
++                    response.Message = "Error occurred while updating the employee.";
++                }
++            }
++        }
++        catch (Exception ex)
++        {
++            response.StatusCode = 500;
++            response.Message = "Error updating employee: " + ex.Message;
++        }
++
++        return response;
++    }
++}
+Index: TCSASystems.Blazor.EmployeeManagement/Models/Employee.cs
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/TCSASystems.Blazor.EmployeeManagement/Models/Employee.cs b/TCSASystems.Blazor.EmployeeManagement/Models/Employee.cs
+new file mode 100644
+--- /dev/null	(date 1742838547301)
++++ b/TCSASystems.Blazor.EmployeeManagement/Models/Employee.cs	(date 1742838547301)
+@@ -0,0 +1,74 @@
++using System.ComponentModel.DataAnnotations;
++using System.Reflection;
++
++namespace TCSASystems.Blazor.EmployeeManagement.Models;
++
++public class Employee
++{
++    public int Id { get; set; }
++    public string Name { get; set; }
++    public string ImgUrl { get; set; }
++    public decimal Salary { get; set; }
++    public EmployeeType Type { get; set; }
++    public Position Position { get; set; }
++}
++
++public enum EmployeeType
++{
++    [Display(Name = "Freelance")]
++    Freelance,
++
++    [Display(Name = "Casual")]
++    Casual,
++
++    [Display(Name = "Part Time")]
++    PartTime,
++
++    [Display(Name = "Full Time")]
++    FullTime
++}
++
++public enum Position
++{
++    [Display(Name = "CEO")]
++    CEO,
++
++    [Display(Name = "CFO")]
++    CFO,
++
++    [Display(Name = "CTO")]
++    CTO,
++
++    [Display(Name = "Accountant")]
++    Accountant,
++
++    [Display(Name = "HR Manager")]
++    HRManager,
++
++    [Display(Name = "Marketing Manager")]
++    MarketingManager,
++
++    [Display(Name = "Sales Manager")]
++    SalesManager,
++
++    [Display(Name = "Software Engineer")]
++    SoftwareEngineer,
++
++    [Display(Name = "Data Analyst")]
++    DataAnalyst,
++
++    [Display(Name = "Customer Support")]
++    CustomerSupport
++}
++
++public static class EnumExtensions
++{
++    public static string GetDisplayName(this Enum enumValue)
++    {
++        return enumValue.GetType()
++          .GetMember(enumValue.ToString())
++          .First()
++          .GetCustomAttribute<DisplayAttribute>()
++          ?.GetName();
++    }
++}
+Index: TCSASystems.Blazor.EmployeeManagement/Properties/launchSettings.json
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>{\n  \"iisSettings\": {\n    \"windowsAuthentication\": false,\n    \"anonymousAuthentication\": true,\n    \"iisExpress\": {\n      \"applicationUrl\": \"http://localhost:9205\",\n      \"sslPort\": 44301\n    }\n  },\n  \"profiles\": {\n    \"http\": {\n      \"commandName\": \"Project\",\n      \"dotnetRunMessages\": true,\n      \"launchBrowser\": true,\n      \"applicationUrl\": \"http://localhost:5112\",\n      \"environmentVariables\": {\n        \"ASPNETCORE_ENVIRONMENT\": \"Development\"\n      }\n    },\n    \"https\": {\n      \"commandName\": \"Project\",\n      \"dotnetRunMessages\": true,\n      \"launchBrowser\": true,\n      \"applicationUrl\": \"https://localhost:7090;http://localhost:5112\",\n      \"environmentVariables\": {\n        \"ASPNETCORE_ENVIRONMENT\": \"Development\"\n      }\n    },\n    \"IIS Express\": {\n      \"commandName\": \"IISExpress\",\n      \"launchBrowser\": true,\n      \"environmentVariables\": {\n        \"ASPNETCORE_ENVIRONMENT\": \"Development\"\n      }\n    }\n  }\n}\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/TCSASystems.Blazor.EmployeeManagement/Properties/launchSettings.json b/TCSASystems.Blazor.EmployeeManagement/Properties/launchSettings.json
+--- a/TCSASystems.Blazor.EmployeeManagement/Properties/launchSettings.json	(revision 0a5d3c0deaae285972761d2202564745230df9f0)
++++ b/TCSASystems.Blazor.EmployeeManagement/Properties/launchSettings.json	(date 1742838547352)
+@@ -1,4 +1,4 @@
+-{
++ {
+   "iisSettings": {
+     "windowsAuthentication": false,
+     "anonymousAuthentication": true,
+Index: TCSASystems.Blazor.EmployeeManagement/Models/Responses/GetEmployeesResponse.cs
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/TCSASystems.Blazor.EmployeeManagement/Models/Responses/GetEmployeesResponse.cs b/TCSASystems.Blazor.EmployeeManagement/Models/Responses/GetEmployeesResponse.cs
+new file mode 100644
+--- /dev/null	(date 1742838547311)
++++ b/TCSASystems.Blazor.EmployeeManagement/Models/Responses/GetEmployeesResponse.cs	(date 1742838547311)
+@@ -0,0 +1,6 @@
++namespace TCSASystems.Blazor.EmployeeManagement.Models.Responses;
++
++public class GetEmployeesResponse: BaseResponse
++{
++    public List<Employee>? Employees { get; set; }
++}
+Index: TCSASystems.Blazor.EmployeeManagement/Models/Responses/GetEmployeeResponse.cs
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/TCSASystems.Blazor.EmployeeManagement/Models/Responses/GetEmployeeResponse.cs b/TCSASystems.Blazor.EmployeeManagement/Models/Responses/GetEmployeeResponse.cs
+new file mode 100644
+--- /dev/null	(date 1742838547321)
++++ b/TCSASystems.Blazor.EmployeeManagement/Models/Responses/GetEmployeeResponse.cs	(date 1742838547321)
+@@ -0,0 +1,6 @@
++namespace TCSASystems.Blazor.EmployeeManagement.Models.Responses;
++
++public class GetEmployeeResponse : BaseResponse
++{
++    public Employee? Employee { get; set; }
++}
+Index: TCSASystems.Blazor.EmployeeManagement/Models/Responses/BaseResponse.cs
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/TCSASystems.Blazor.EmployeeManagement/Models/Responses/BaseResponse.cs b/TCSASystems.Blazor.EmployeeManagement/Models/Responses/BaseResponse.cs
+new file mode 100644
+--- /dev/null	(date 1742838547328)
++++ b/TCSASystems.Blazor.EmployeeManagement/Models/Responses/BaseResponse.cs	(date 1742838547328)
+@@ -0,0 +1,7 @@
++namespace TCSASystems.Blazor.EmployeeManagement.Models.Responses;
++
++public class BaseResponse
++{
++    public int StatusCode { get; set; }
++    public string Message { get; set; }
++}
+Index: TCSASystems.Blazor.EmployeeManagement/Models/DTOs/AddEmployeeForm.cs
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/TCSASystems.Blazor.EmployeeManagement/Models/DTOs/AddEmployeeForm.cs b/TCSASystems.Blazor.EmployeeManagement/Models/DTOs/AddEmployeeForm.cs
+new file mode 100644
+--- /dev/null	(date 1742838547334)
++++ b/TCSASystems.Blazor.EmployeeManagement/Models/DTOs/AddEmployeeForm.cs	(date 1742838547334)
+@@ -0,0 +1,21 @@
++using System.ComponentModel.DataAnnotations;
++
++namespace TCSASystems.Blazor.EmployeeManagement.Models.DTOs;
++
++public class AddEmployeeForm
++{
++    [Required]
++    public string Name { get; set; }
++
++    [Required]
++    public decimal Salary { get; set; }
++
++    [Required]
++    public EmployeeType Type { get; set; }
++
++    [Required]
++    public Position Position { get; set; }
++
++    [Required]
++    public string ImgUrl { get; set; }
++}
+Index: TCSASystems.Blazor.EmployeeManagement/Pages/EmployeesTable.razor
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/TCSASystems.Blazor.EmployeeManagement/Pages/EmployeesTable.razor b/TCSASystems.Blazor.EmployeeManagement/Pages/EmployeesTable.razor
+new file mode 100644
+--- /dev/null	(date 1742838547362)
++++ b/TCSASystems.Blazor.EmployeeManagement/Pages/EmployeesTable.razor	(date 1742838547362)
+@@ -0,0 +1,159 @@
++@page "/"
++
++@if (ShowWarning)
++{
++    <Warning OnClickCallback="DismissWarning" Type=Warning.WarningType.Error Message="@ErrorMessage" />
++}
++@if (Employees != null)
++{
++    <Card>
++        <div class="table-responsive">
++            <div class="form-floating mb-3">
++                <input type="text" class="form-control" id="floatingInput" placeholder="Name here" @oninput="FilterEmployees" />
++                <label for="floatingInput">Filter by name</label>
++            </div>
++            <table class="table table-borderless mb-0">
++                <tbody>
++                    @foreach (var employee in Employees)
++                    {
++                        <tr class="shadow-lg m-1 employee-row mb-5">
++                            <td class="centered-cell"><img class="round-image" width="60" src="@employee.ImgUrl" /></td>
++                            <td>
++                                <div class="pt-2">
++                                    <div class="employee-name centered-subdiv">@employee.Name</div>
++                                    <div class="employee-position centered-subdiv">@employee.Position.GetDisplayName()</div>
++                                </div>
++                            </td>
++                            <td class="centered-cell @GetEmployeeTypeStyle(employee.Type)">@employee.Type.GetDisplayName()</td>
++                            <td class="centered-cell employee-salary">$@employee.Salary</td>
++                            <td class="centered-cell">
++                                <TableButton OnClickCallback="@(() => NavigateToEmployeeDetail(employee.Id))"/>
++                            </td>
++                        </tr>
++                    }
++                </tbody>
++            </table>
++        </div>
++    </Card>
++}
++
++@code {
++    [Inject] private IEmployeeService EmployeeService { get; set; }
++    [Inject] private NavigationManager NavigationManager { get; set; }
++
++    private List<Employee>? Employees;
++    private List<Employee>? EmployeesBackup;
++
++    private bool ShowWarning = false;
++    private string ErrorMessage = "";
++
++    protected override async Task OnInitializedAsync()
++    {
++        var response = await EmployeeService.GetEmployees();
++
++        if (response.StatusCode == 500)
++        {
++            ShowWarning = true;
++            ErrorMessage = response.Message;
++        }
++        else
++        {
++            Employees = response.Employees;
++            EmployeesBackup = Employees;
++        }
++    }
++
++    private string GetEmployeeTypeStyle(EmployeeType employeeType) => employeeType switch
++    {
++        EmployeeType.Freelance => "freelance",
++        EmployeeType.PartTime => "part-time",
++        EmployeeType.Casual => "casual",
++        EmployeeType.FullTime => "full-time"
++    };
++
++    private void NavigateToEmployeeDetail(int employeeId)
++    {
++        NavigationManager.NavigateTo($"/employee/{employeeId}");
++    }
++
++    private void FilterEmployees(ChangeEventArgs e)
++    {
++        Employees = EmployeesBackup;
++        Employees = Employees.Where(x => x.Name.IndexOf(e.Value.ToString(), StringComparison.OrdinalIgnoreCase) >= 0).ToList();
++    }
++
++    private void DismissWarning()
++    {
++        ShowWarning = false;
++        NavigationManager.NavigateTo($"identity/account/logout", true);
++    }
++}
++
++<style>
++    html,
++    body,
++    .intro {
++        height: 100%;
++    }
++
++    table td,
++    table th {
++        text-overflow: ellipsis;
++        white-space: nowrap;
++        overflow: hidden;
++    }
++
++    .table {
++        border-spacing: 0 20px;
++    }
++
++    .card {
++        border-radius: .5rem;
++    }
++
++    .round-image {
++        border-radius: 50%;
++    }
++
++    .employee-name {
++        font-size: 20px;
++        font-weight: 600;
++    }
++
++    .employee-salary {
++        font-size: 16px;
++        font-weight: 600;
++    }
++
++    .centered-cell {
++        height: 80px;
++        width: 160px;
++        text-align: center;
++        vertical-align: middle;
++    }
++
++    .centered-subdiv {
++        height: 25px;
++        vertical-align: middle;
++    }
++
++    .part-time {
++        color: white;
++        background-color: darkred !important;
++    }
++
++    .full-time {
++        color: white;
++        background-color: darkblue !important;
++    }
++
++    .casual {
++        color: white;
++        background-color: darkgreen !important;
++    }
++
++    .freelance {
++        color: white;
++        background-color: darkmagenta !important;
++    }
++</style>
+Index: TCSASystems.Blazor.EmployeeManagement/Migrations/20250321192712_InitMySQL.Designer.cs
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/TCSASystems.Blazor.EmployeeManagement/Migrations/20250321192712_InitMySQL.Designer.cs b/TCSASystems.Blazor.EmployeeManagement/Migrations/20250321192712_InitMySQL.Designer.cs
+new file mode 100644
+--- /dev/null	(date 1742838547241)
++++ b/TCSASystems.Blazor.EmployeeManagement/Migrations/20250321192712_InitMySQL.Designer.cs	(date 1742838547241)
+@@ -0,0 +1,750 @@
++// <auto-generated />
++using System;
++using Microsoft.EntityFrameworkCore;
++using Microsoft.EntityFrameworkCore.Infrastructure;
++using Microsoft.EntityFrameworkCore.Migrations;
++using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
++using TCSASystems.Blazor.EmployeeManagement.Data;
++
++#nullable disable
++
++namespace TCSASystems.Blazor.EmployeeManagement.Migrations
++{
++    [DbContext(typeof(DataContext))]
++    [Migration("20250321192712_InitMySQL")]
++    partial class InitMySQL
++    {
++        /// <inheritdoc />
++        protected override void BuildTargetModel(ModelBuilder modelBuilder)
++        {
++#pragma warning disable 612, 618
++            modelBuilder
++                .HasAnnotation("ProductVersion", "8.0.7")
++                .HasAnnotation("Relational:MaxIdentifierLength", 64);
++
++            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
++                {
++                    b.Property<string>("Id")
++                        .HasColumnType("varchar(255)");
++
++                    b.Property<string>("ConcurrencyStamp")
++                        .IsConcurrencyToken()
++                        .HasColumnType("longtext");
++
++                    b.Property<string>("Name")
++                        .HasMaxLength(256)
++                        .HasColumnType("varchar(256)");
++
++                    b.Property<string>("NormalizedName")
++                        .HasMaxLength(256)
++                        .HasColumnType("varchar(256)");
++
++                    b.HasKey("Id");
++
++                    b.HasIndex("NormalizedName")
++                        .IsUnique()
++                        .HasDatabaseName("RoleNameIndex");
++
++                    b.ToTable("AspNetRoles", (string)null);
++                });
++
++            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
++                {
++                    b.Property<int>("Id")
++                        .ValueGeneratedOnAdd()
++                        .HasColumnType("int");
++
++                    b.Property<string>("ClaimType")
++                        .HasColumnType("longtext");
++
++                    b.Property<string>("ClaimValue")
++                        .HasColumnType("longtext");
++
++                    b.Property<string>("RoleId")
++                        .IsRequired()
++                        .HasColumnType("varchar(255)");
++
++                    b.HasKey("Id");
++
++                    b.HasIndex("RoleId");
++
++                    b.ToTable("AspNetRoleClaims", (string)null);
++                });
++
++            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUser", b =>
++                {
++                    b.Property<string>("Id")
++                        .HasColumnType("varchar(255)");
++
++                    b.Property<int>("AccessFailedCount")
++                        .HasColumnType("int");
++
++                    b.Property<string>("ConcurrencyStamp")
++                        .IsConcurrencyToken()
++                        .HasColumnType("longtext");
++
++                    b.Property<string>("Email")
++                        .HasMaxLength(256)
++                        .HasColumnType("varchar(256)");
++
++                    b.Property<bool>("EmailConfirmed")
++                        .HasColumnType("tinyint(1)");
++
++                    b.Property<bool>("LockoutEnabled")
++                        .HasColumnType("tinyint(1)");
++
++                    b.Property<DateTimeOffset?>("LockoutEnd")
++                        .HasColumnType("datetime(6)");
++
++                    b.Property<string>("NormalizedEmail")
++                        .HasMaxLength(256)
++                        .HasColumnType("varchar(256)");
++
++                    b.Property<string>("NormalizedUserName")
++                        .HasMaxLength(256)
++                        .HasColumnType("varchar(256)");
++
++                    b.Property<string>("PasswordHash")
++                        .HasColumnType("longtext");
++
++                    b.Property<string>("PhoneNumber")
++                        .HasColumnType("longtext");
++
++                    b.Property<bool>("PhoneNumberConfirmed")
++                        .HasColumnType("tinyint(1)");
++
++                    b.Property<string>("SecurityStamp")
++                        .HasColumnType("longtext");
++
++                    b.Property<bool>("TwoFactorEnabled")
++                        .HasColumnType("tinyint(1)");
++
++                    b.Property<string>("UserName")
++                        .HasMaxLength(256)
++                        .HasColumnType("varchar(256)");
++
++                    b.HasKey("Id");
++
++                    b.HasIndex("NormalizedEmail")
++                        .HasDatabaseName("EmailIndex");
++
++                    b.HasIndex("NormalizedUserName")
++                        .IsUnique()
++                        .HasDatabaseName("UserNameIndex");
++
++                    b.ToTable("AspNetUsers", (string)null);
++                });
++
++            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
++                {
++                    b.Property<int>("Id")
++                        .ValueGeneratedOnAdd()
++                        .HasColumnType("int");
++
++                    b.Property<string>("ClaimType")
++                        .HasColumnType("longtext");
++
++                    b.Property<string>("ClaimValue")
++                        .HasColumnType("longtext");
++
++                    b.Property<string>("UserId")
++                        .IsRequired()
++                        .HasColumnType("varchar(255)");
++
++                    b.HasKey("Id");
++
++                    b.HasIndex("UserId");
++
++                    b.ToTable("AspNetUserClaims", (string)null);
++                });
++
++            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
++                {
++                    b.Property<string>("LoginProvider")
++                        .HasColumnType("varchar(255)");
++
++                    b.Property<string>("ProviderKey")
++                        .HasColumnType("varchar(255)");
++
++                    b.Property<string>("ProviderDisplayName")
++                        .HasColumnType("longtext");
++
++                    b.Property<string>("UserId")
++                        .IsRequired()
++                        .HasColumnType("varchar(255)");
++
++                    b.HasKey("LoginProvider", "ProviderKey");
++
++                    b.HasIndex("UserId");
++
++                    b.ToTable("AspNetUserLogins", (string)null);
++                });
++
++            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<string>", b =>
++                {
++                    b.Property<string>("UserId")
++                        .HasColumnType("varchar(255)");
++
++                    b.Property<string>("RoleId")
++                        .HasColumnType("varchar(255)");
++
++                    b.HasKey("UserId", "RoleId");
++
++                    b.HasIndex("RoleId");
++
++                    b.ToTable("AspNetUserRoles", (string)null);
++                });
++
++            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
++                {
++                    b.Property<string>("UserId")
++                        .HasColumnType("varchar(255)");
++
++                    b.Property<string>("LoginProvider")
++                        .HasColumnType("varchar(255)");
++
++                    b.Property<string>("Name")
++                        .HasColumnType("varchar(255)");
++
++                    b.Property<string>("Value")
++                        .HasColumnType("longtext");
++
++                    b.HasKey("UserId", "LoginProvider", "Name");
++
++                    b.ToTable("AspNetUserTokens", (string)null);
++                });
++
++            modelBuilder.Entity("TCSASystems.Blazor.EmployeeManagement.Models.Employee", b =>
++                {
++                    b.Property<int>("Id")
++                        .ValueGeneratedOnAdd()
++                        .HasColumnType("int");
++
++                    b.Property<string>("ImgUrl")
++                        .IsRequired()
++                        .HasColumnType("longtext");
++
++                    b.Property<string>("Name")
++                        .IsRequired()
++                        .HasColumnType("longtext");
++
++                    b.Property<int>("Position")
++                        .HasColumnType("int");
++
++                    b.Property<decimal>("Salary")
++                        .HasColumnType("decimal(65,30)");
++
++                    b.Property<int>("Type")
++                        .HasColumnType("int");
++
++                    b.HasKey("Id");
++
++                    b.ToTable("Employees");
++
++                    b.HasData(
++                        new
++                        {
++                            Id = 1,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/225.jpg",
++                            Name = "Nora Kulas",
++                            Position = 8,
++                            Salary = 59195m,
++                            Type = 0
++                        },
++                        new
++                        {
++                            Id = 2,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/857.jpg",
++                            Name = "Freida Cartwright",
++                            Position = 8,
++                            Salary = 67616m,
++                            Type = 2
++                        },
++                        new
++                        {
++                            Id = 3,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/751.jpg",
++                            Name = "Faustino Herman",
++                            Position = 0,
++                            Salary = 81583m,
++                            Type = 3
++                        },
++                        new
++                        {
++                            Id = 4,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/1047.jpg",
++                            Name = "Godfrey Parker",
++                            Position = 6,
++                            Salary = 54628m,
++                            Type = 0
++                        },
++                        new
++                        {
++                            Id = 5,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/1.jpg",
++                            Name = "Lessie Fahey",
++                            Position = 1,
++                            Salary = 44614m,
++                            Type = 2
++                        },
++                        new
++                        {
++                            Id = 6,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/987.jpg",
++                            Name = "Adela Nolan",
++                            Position = 1,
++                            Salary = 57831m,
++                            Type = 3
++                        },
++                        new
++                        {
++                            Id = 7,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/16.jpg",
++                            Name = "Hester Hodkiewicz",
++                            Position = 0,
++                            Salary = 60909m,
++                            Type = 2
++                        },
++                        new
++                        {
++                            Id = 8,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/937.jpg",
++                            Name = "Bernardo Conroy",
++                            Position = 7,
++                            Salary = 65305m,
++                            Type = 2
++                        },
++                        new
++                        {
++                            Id = 9,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/630.jpg",
++                            Name = "Ashleigh Bogisich",
++                            Position = 2,
++                            Salary = 96102m,
++                            Type = 3
++                        },
++                        new
++                        {
++                            Id = 10,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/280.jpg",
++                            Name = "Meda Jerde",
++                            Position = 3,
++                            Salary = 86047m,
++                            Type = 0
++                        },
++                        new
++                        {
++                            Id = 11,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/95.jpg",
++                            Name = "Clementine Bode",
++                            Position = 6,
++                            Salary = 77600m,
++                            Type = 3
++                        },
++                        new
++                        {
++                            Id = 12,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/139.jpg",
++                            Name = "Marge Bernhard",
++                            Position = 9,
++                            Salary = 34132m,
++                            Type = 3
++                        },
++                        new
++                        {
++                            Id = 13,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/891.jpg",
++                            Name = "Olga Schultz",
++                            Position = 8,
++                            Salary = 42368m,
++                            Type = 2
++                        },
++                        new
++                        {
++                            Id = 14,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/704.jpg",
++                            Name = "Marie Schuppe",
++                            Position = 3,
++                            Salary = 56603m,
++                            Type = 3
++                        },
++                        new
++                        {
++                            Id = 15,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/936.jpg",
++                            Name = "Josianne Fisher",
++                            Position = 6,
++                            Salary = 91276m,
++                            Type = 3
++                        },
++                        new
++                        {
++                            Id = 16,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/613.jpg",
++                            Name = "Osborne Botsford",
++                            Position = 7,
++                            Salary = 85966m,
++                            Type = 1
++                        },
++                        new
++                        {
++                            Id = 17,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/1166.jpg",
++                            Name = "Delilah Dickinson",
++                            Position = 1,
++                            Salary = 80345m,
++                            Type = 0
++                        },
++                        new
++                        {
++                            Id = 18,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/1005.jpg",
++                            Name = "Jermey Mosciski",
++                            Position = 2,
++                            Salary = 83753m,
++                            Type = 0
++                        },
++                        new
++                        {
++                            Id = 19,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/2.jpg",
++                            Name = "Madonna Zboncak",
++                            Position = 5,
++                            Salary = 58519m,
++                            Type = 0
++                        },
++                        new
++                        {
++                            Id = 20,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/27.jpg",
++                            Name = "Jaren Dicki",
++                            Position = 0,
++                            Salary = 54498m,
++                            Type = 0
++                        },
++                        new
++                        {
++                            Id = 21,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/1043.jpg",
++                            Name = "Marc Fadel",
++                            Position = 8,
++                            Salary = 90102m,
++                            Type = 0
++                        },
++                        new
++                        {
++                            Id = 22,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/455.jpg",
++                            Name = "Alycia McClure",
++                            Position = 7,
++                            Salary = 88080m,
++                            Type = 2
++                        },
++                        new
++                        {
++                            Id = 23,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/1056.jpg",
++                            Name = "Giuseppe Koepp",
++                            Position = 6,
++                            Salary = 45733m,
++                            Type = 1
++                        },
++                        new
++                        {
++                            Id = 24,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/1133.jpg",
++                            Name = "Bernard Brown",
++                            Position = 5,
++                            Salary = 32217m,
++                            Type = 2
++                        },
++                        new
++                        {
++                            Id = 25,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/442.jpg",
++                            Name = "Gina Kuvalis",
++                            Position = 2,
++                            Salary = 48631m,
++                            Type = 2
++                        },
++                        new
++                        {
++                            Id = 26,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/118.jpg",
++                            Name = "Shany Konopelski",
++                            Position = 7,
++                            Salary = 37239m,
++                            Type = 3
++                        },
++                        new
++                        {
++                            Id = 27,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/114.jpg",
++                            Name = "Jarvis O'Reilly",
++                            Position = 8,
++                            Salary = 89908m,
++                            Type = 3
++                        },
++                        new
++                        {
++                            Id = 28,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/151.jpg",
++                            Name = "Sven Schowalter",
++                            Position = 4,
++                            Salary = 87837m,
++                            Type = 3
++                        },
++                        new
++                        {
++                            Id = 29,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/207.jpg",
++                            Name = "Marcia Cremin",
++                            Position = 7,
++                            Salary = 90414m,
++                            Type = 1
++                        },
++                        new
++                        {
++                            Id = 30,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/1189.jpg",
++                            Name = "Estelle Greenholt",
++                            Position = 0,
++                            Salary = 52666m,
++                            Type = 2
++                        },
++                        new
++                        {
++                            Id = 31,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/811.jpg",
++                            Name = "Helena Stracke",
++                            Position = 1,
++                            Salary = 62390m,
++                            Type = 2
++                        },
++                        new
++                        {
++                            Id = 32,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/933.jpg",
++                            Name = "Samanta Mayert",
++                            Position = 7,
++                            Salary = 78554m,
++                            Type = 1
++                        },
++                        new
++                        {
++                            Id = 33,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/438.jpg",
++                            Name = "Mitchell Feil",
++                            Position = 3,
++                            Salary = 67377m,
++                            Type = 0
++                        },
++                        new
++                        {
++                            Id = 34,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/573.jpg",
++                            Name = "Sarai Batz",
++                            Position = 9,
++                            Salary = 76405m,
++                            Type = 0
++                        },
++                        new
++                        {
++                            Id = 35,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/1010.jpg",
++                            Name = "Heaven Jerde",
++                            Position = 5,
++                            Salary = 66707m,
++                            Type = 1
++                        },
++                        new
++                        {
++                            Id = 36,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/790.jpg",
++                            Name = "Henderson Bergnaum",
++                            Position = 5,
++                            Salary = 66596m,
++                            Type = 3
++                        },
++                        new
++                        {
++                            Id = 37,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/726.jpg",
++                            Name = "Earnestine Dickinson",
++                            Position = 4,
++                            Salary = 94882m,
++                            Type = 3
++                        },
++                        new
++                        {
++                            Id = 38,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/190.jpg",
++                            Name = "Deven Dach",
++                            Position = 3,
++                            Salary = 40342m,
++                            Type = 1
++                        },
++                        new
++                        {
++                            Id = 39,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/1095.jpg",
++                            Name = "Scot Hettinger",
++                            Position = 4,
++                            Salary = 46603m,
++                            Type = 2
++                        },
++                        new
++                        {
++                            Id = 40,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/668.jpg",
++                            Name = "Tatum Johns",
++                            Position = 4,
++                            Salary = 93370m,
++                            Type = 2
++                        },
++                        new
++                        {
++                            Id = 41,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/1170.jpg",
++                            Name = "Kay Cartwright",
++                            Position = 4,
++                            Salary = 35709m,
++                            Type = 1
++                        },
++                        new
++                        {
++                            Id = 42,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/691.jpg",
++                            Name = "Marshall Keebler",
++                            Position = 6,
++                            Salary = 95460m,
++                            Type = 2
++                        },
++                        new
++                        {
++                            Id = 43,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/819.jpg",
++                            Name = "Amir Hegmann",
++                            Position = 5,
++                            Salary = 74360m,
++                            Type = 0
++                        },
++                        new
++                        {
++                            Id = 44,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/112.jpg",
++                            Name = "Dovie Gutmann",
++                            Position = 7,
++                            Salary = 56716m,
++                            Type = 0
++                        },
++                        new
++                        {
++                            Id = 45,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/1054.jpg",
++                            Name = "Richie Kunde",
++                            Position = 0,
++                            Salary = 47242m,
++                            Type = 3
++                        },
++                        new
++                        {
++                            Id = 46,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/860.jpg",
++                            Name = "Jailyn Koelpin",
++                            Position = 1,
++                            Salary = 83978m,
++                            Type = 3
++                        },
++                        new
++                        {
++                            Id = 47,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/1084.jpg",
++                            Name = "Shannon Bogisich",
++                            Position = 2,
++                            Salary = 62063m,
++                            Type = 2
++                        },
++                        new
++                        {
++                            Id = 48,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/845.jpg",
++                            Name = "Mavis Steuber",
++                            Position = 7,
++                            Salary = 58624m,
++                            Type = 0
++                        },
++                        new
++                        {
++                            Id = 49,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/557.jpg",
++                            Name = "Lorine Block",
++                            Position = 3,
++                            Salary = 94796m,
++                            Type = 3
++                        },
++                        new
++                        {
++                            Id = 50,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/192.jpg",
++                            Name = "Jolie King",
++                            Position = 2,
++                            Salary = 60565m,
++                            Type = 2
++                        });
++                });
++
++            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
++                {
++                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
++                        .WithMany()
++                        .HasForeignKey("RoleId")
++                        .OnDelete(DeleteBehavior.Cascade)
++                        .IsRequired();
++                });
++
++            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
++                {
++                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
++                        .WithMany()
++                        .HasForeignKey("UserId")
++                        .OnDelete(DeleteBehavior.Cascade)
++                        .IsRequired();
++                });
++
++            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
++                {
++                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
++                        .WithMany()
++                        .HasForeignKey("UserId")
++                        .OnDelete(DeleteBehavior.Cascade)
++                        .IsRequired();
++                });
++
++            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<string>", b =>
++                {
++                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
++                        .WithMany()
++                        .HasForeignKey("RoleId")
++                        .OnDelete(DeleteBehavior.Cascade)
++                        .IsRequired();
++
++                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
++                        .WithMany()
++                        .HasForeignKey("UserId")
++                        .OnDelete(DeleteBehavior.Cascade)
++                        .IsRequired();
++                });
++
++            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
++                {
++                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
++                        .WithMany()
++                        .HasForeignKey("UserId")
++                        .OnDelete(DeleteBehavior.Cascade)
++                        .IsRequired();
++                });
++#pragma warning restore 612, 618
++        }
++    }
++}
+Index: TCSASystems.Blazor.EmployeeManagement/Migrations/DataContextModelSnapshot.cs
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/TCSASystems.Blazor.EmployeeManagement/Migrations/DataContextModelSnapshot.cs b/TCSASystems.Blazor.EmployeeManagement/Migrations/DataContextModelSnapshot.cs
+new file mode 100644
+--- /dev/null	(date 1742838547249)
++++ b/TCSASystems.Blazor.EmployeeManagement/Migrations/DataContextModelSnapshot.cs	(date 1742838547249)
+@@ -0,0 +1,747 @@
++// <auto-generated />
++using System;
++using Microsoft.EntityFrameworkCore;
++using Microsoft.EntityFrameworkCore.Infrastructure;
++using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
++using TCSASystems.Blazor.EmployeeManagement.Data;
++
++#nullable disable
++
++namespace TCSASystems.Blazor.EmployeeManagement.Migrations
++{
++    [DbContext(typeof(DataContext))]
++    partial class DataContextModelSnapshot : ModelSnapshot
++    {
++        protected override void BuildModel(ModelBuilder modelBuilder)
++        {
++#pragma warning disable 612, 618
++            modelBuilder
++                .HasAnnotation("ProductVersion", "8.0.7")
++                .HasAnnotation("Relational:MaxIdentifierLength", 64);
++
++            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
++                {
++                    b.Property<string>("Id")
++                        .HasColumnType("varchar(255)");
++
++                    b.Property<string>("ConcurrencyStamp")
++                        .IsConcurrencyToken()
++                        .HasColumnType("longtext");
++
++                    b.Property<string>("Name")
++                        .HasMaxLength(256)
++                        .HasColumnType("varchar(256)");
++
++                    b.Property<string>("NormalizedName")
++                        .HasMaxLength(256)
++                        .HasColumnType("varchar(256)");
++
++                    b.HasKey("Id");
++
++                    b.HasIndex("NormalizedName")
++                        .IsUnique()
++                        .HasDatabaseName("RoleNameIndex");
++
++                    b.ToTable("AspNetRoles", (string)null);
++                });
++
++            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
++                {
++                    b.Property<int>("Id")
++                        .ValueGeneratedOnAdd()
++                        .HasColumnType("int");
++
++                    b.Property<string>("ClaimType")
++                        .HasColumnType("longtext");
++
++                    b.Property<string>("ClaimValue")
++                        .HasColumnType("longtext");
++
++                    b.Property<string>("RoleId")
++                        .IsRequired()
++                        .HasColumnType("varchar(255)");
++
++                    b.HasKey("Id");
++
++                    b.HasIndex("RoleId");
++
++                    b.ToTable("AspNetRoleClaims", (string)null);
++                });
++
++            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUser", b =>
++                {
++                    b.Property<string>("Id")
++                        .HasColumnType("varchar(255)");
++
++                    b.Property<int>("AccessFailedCount")
++                        .HasColumnType("int");
++
++                    b.Property<string>("ConcurrencyStamp")
++                        .IsConcurrencyToken()
++                        .HasColumnType("longtext");
++
++                    b.Property<string>("Email")
++                        .HasMaxLength(256)
++                        .HasColumnType("varchar(256)");
++
++                    b.Property<bool>("EmailConfirmed")
++                        .HasColumnType("tinyint(1)");
++
++                    b.Property<bool>("LockoutEnabled")
++                        .HasColumnType("tinyint(1)");
++
++                    b.Property<DateTimeOffset?>("LockoutEnd")
++                        .HasColumnType("datetime(6)");
++
++                    b.Property<string>("NormalizedEmail")
++                        .HasMaxLength(256)
++                        .HasColumnType("varchar(256)");
++
++                    b.Property<string>("NormalizedUserName")
++                        .HasMaxLength(256)
++                        .HasColumnType("varchar(256)");
++
++                    b.Property<string>("PasswordHash")
++                        .HasColumnType("longtext");
++
++                    b.Property<string>("PhoneNumber")
++                        .HasColumnType("longtext");
++
++                    b.Property<bool>("PhoneNumberConfirmed")
++                        .HasColumnType("tinyint(1)");
++
++                    b.Property<string>("SecurityStamp")
++                        .HasColumnType("longtext");
++
++                    b.Property<bool>("TwoFactorEnabled")
++                        .HasColumnType("tinyint(1)");
++
++                    b.Property<string>("UserName")
++                        .HasMaxLength(256)
++                        .HasColumnType("varchar(256)");
++
++                    b.HasKey("Id");
++
++                    b.HasIndex("NormalizedEmail")
++                        .HasDatabaseName("EmailIndex");
++
++                    b.HasIndex("NormalizedUserName")
++                        .IsUnique()
++                        .HasDatabaseName("UserNameIndex");
++
++                    b.ToTable("AspNetUsers", (string)null);
++                });
++
++            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
++                {
++                    b.Property<int>("Id")
++                        .ValueGeneratedOnAdd()
++                        .HasColumnType("int");
++
++                    b.Property<string>("ClaimType")
++                        .HasColumnType("longtext");
++
++                    b.Property<string>("ClaimValue")
++                        .HasColumnType("longtext");
++
++                    b.Property<string>("UserId")
++                        .IsRequired()
++                        .HasColumnType("varchar(255)");
++
++                    b.HasKey("Id");
++
++                    b.HasIndex("UserId");
++
++                    b.ToTable("AspNetUserClaims", (string)null);
++                });
++
++            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
++                {
++                    b.Property<string>("LoginProvider")
++                        .HasColumnType("varchar(255)");
++
++                    b.Property<string>("ProviderKey")
++                        .HasColumnType("varchar(255)");
++
++                    b.Property<string>("ProviderDisplayName")
++                        .HasColumnType("longtext");
++
++                    b.Property<string>("UserId")
++                        .IsRequired()
++                        .HasColumnType("varchar(255)");
++
++                    b.HasKey("LoginProvider", "ProviderKey");
++
++                    b.HasIndex("UserId");
++
++                    b.ToTable("AspNetUserLogins", (string)null);
++                });
++
++            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<string>", b =>
++                {
++                    b.Property<string>("UserId")
++                        .HasColumnType("varchar(255)");
++
++                    b.Property<string>("RoleId")
++                        .HasColumnType("varchar(255)");
++
++                    b.HasKey("UserId", "RoleId");
++
++                    b.HasIndex("RoleId");
++
++                    b.ToTable("AspNetUserRoles", (string)null);
++                });
++
++            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
++                {
++                    b.Property<string>("UserId")
++                        .HasColumnType("varchar(255)");
++
++                    b.Property<string>("LoginProvider")
++                        .HasColumnType("varchar(255)");
++
++                    b.Property<string>("Name")
++                        .HasColumnType("varchar(255)");
++
++                    b.Property<string>("Value")
++                        .HasColumnType("longtext");
++
++                    b.HasKey("UserId", "LoginProvider", "Name");
++
++                    b.ToTable("AspNetUserTokens", (string)null);
++                });
++
++            modelBuilder.Entity("TCSASystems.Blazor.EmployeeManagement.Models.Employee", b =>
++                {
++                    b.Property<int>("Id")
++                        .ValueGeneratedOnAdd()
++                        .HasColumnType("int");
++
++                    b.Property<string>("ImgUrl")
++                        .IsRequired()
++                        .HasColumnType("longtext");
++
++                    b.Property<string>("Name")
++                        .IsRequired()
++                        .HasColumnType("longtext");
++
++                    b.Property<int>("Position")
++                        .HasColumnType("int");
++
++                    b.Property<decimal>("Salary")
++                        .HasColumnType("decimal(65,30)");
++
++                    b.Property<int>("Type")
++                        .HasColumnType("int");
++
++                    b.HasKey("Id");
++
++                    b.ToTable("Employees");
++
++                    b.HasData(
++                        new
++                        {
++                            Id = 1,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/225.jpg",
++                            Name = "Nora Kulas",
++                            Position = 8,
++                            Salary = 59195m,
++                            Type = 0
++                        },
++                        new
++                        {
++                            Id = 2,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/857.jpg",
++                            Name = "Freida Cartwright",
++                            Position = 8,
++                            Salary = 67616m,
++                            Type = 2
++                        },
++                        new
++                        {
++                            Id = 3,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/751.jpg",
++                            Name = "Faustino Herman",
++                            Position = 0,
++                            Salary = 81583m,
++                            Type = 3
++                        },
++                        new
++                        {
++                            Id = 4,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/1047.jpg",
++                            Name = "Godfrey Parker",
++                            Position = 6,
++                            Salary = 54628m,
++                            Type = 0
++                        },
++                        new
++                        {
++                            Id = 5,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/1.jpg",
++                            Name = "Lessie Fahey",
++                            Position = 1,
++                            Salary = 44614m,
++                            Type = 2
++                        },
++                        new
++                        {
++                            Id = 6,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/987.jpg",
++                            Name = "Adela Nolan",
++                            Position = 1,
++                            Salary = 57831m,
++                            Type = 3
++                        },
++                        new
++                        {
++                            Id = 7,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/16.jpg",
++                            Name = "Hester Hodkiewicz",
++                            Position = 0,
++                            Salary = 60909m,
++                            Type = 2
++                        },
++                        new
++                        {
++                            Id = 8,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/937.jpg",
++                            Name = "Bernardo Conroy",
++                            Position = 7,
++                            Salary = 65305m,
++                            Type = 2
++                        },
++                        new
++                        {
++                            Id = 9,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/630.jpg",
++                            Name = "Ashleigh Bogisich",
++                            Position = 2,
++                            Salary = 96102m,
++                            Type = 3
++                        },
++                        new
++                        {
++                            Id = 10,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/280.jpg",
++                            Name = "Meda Jerde",
++                            Position = 3,
++                            Salary = 86047m,
++                            Type = 0
++                        },
++                        new
++                        {
++                            Id = 11,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/95.jpg",
++                            Name = "Clementine Bode",
++                            Position = 6,
++                            Salary = 77600m,
++                            Type = 3
++                        },
++                        new
++                        {
++                            Id = 12,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/139.jpg",
++                            Name = "Marge Bernhard",
++                            Position = 9,
++                            Salary = 34132m,
++                            Type = 3
++                        },
++                        new
++                        {
++                            Id = 13,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/891.jpg",
++                            Name = "Olga Schultz",
++                            Position = 8,
++                            Salary = 42368m,
++                            Type = 2
++                        },
++                        new
++                        {
++                            Id = 14,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/704.jpg",
++                            Name = "Marie Schuppe",
++                            Position = 3,
++                            Salary = 56603m,
++                            Type = 3
++                        },
++                        new
++                        {
++                            Id = 15,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/936.jpg",
++                            Name = "Josianne Fisher",
++                            Position = 6,
++                            Salary = 91276m,
++                            Type = 3
++                        },
++                        new
++                        {
++                            Id = 16,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/613.jpg",
++                            Name = "Osborne Botsford",
++                            Position = 7,
++                            Salary = 85966m,
++                            Type = 1
++                        },
++                        new
++                        {
++                            Id = 17,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/1166.jpg",
++                            Name = "Delilah Dickinson",
++                            Position = 1,
++                            Salary = 80345m,
++                            Type = 0
++                        },
++                        new
++                        {
++                            Id = 18,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/1005.jpg",
++                            Name = "Jermey Mosciski",
++                            Position = 2,
++                            Salary = 83753m,
++                            Type = 0
++                        },
++                        new
++                        {
++                            Id = 19,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/2.jpg",
++                            Name = "Madonna Zboncak",
++                            Position = 5,
++                            Salary = 58519m,
++                            Type = 0
++                        },
++                        new
++                        {
++                            Id = 20,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/27.jpg",
++                            Name = "Jaren Dicki",
++                            Position = 0,
++                            Salary = 54498m,
++                            Type = 0
++                        },
++                        new
++                        {
++                            Id = 21,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/1043.jpg",
++                            Name = "Marc Fadel",
++                            Position = 8,
++                            Salary = 90102m,
++                            Type = 0
++                        },
++                        new
++                        {
++                            Id = 22,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/455.jpg",
++                            Name = "Alycia McClure",
++                            Position = 7,
++                            Salary = 88080m,
++                            Type = 2
++                        },
++                        new
++                        {
++                            Id = 23,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/1056.jpg",
++                            Name = "Giuseppe Koepp",
++                            Position = 6,
++                            Salary = 45733m,
++                            Type = 1
++                        },
++                        new
++                        {
++                            Id = 24,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/1133.jpg",
++                            Name = "Bernard Brown",
++                            Position = 5,
++                            Salary = 32217m,
++                            Type = 2
++                        },
++                        new
++                        {
++                            Id = 25,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/442.jpg",
++                            Name = "Gina Kuvalis",
++                            Position = 2,
++                            Salary = 48631m,
++                            Type = 2
++                        },
++                        new
++                        {
++                            Id = 26,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/118.jpg",
++                            Name = "Shany Konopelski",
++                            Position = 7,
++                            Salary = 37239m,
++                            Type = 3
++                        },
++                        new
++                        {
++                            Id = 27,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/114.jpg",
++                            Name = "Jarvis O'Reilly",
++                            Position = 8,
++                            Salary = 89908m,
++                            Type = 3
++                        },
++                        new
++                        {
++                            Id = 28,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/151.jpg",
++                            Name = "Sven Schowalter",
++                            Position = 4,
++                            Salary = 87837m,
++                            Type = 3
++                        },
++                        new
++                        {
++                            Id = 29,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/207.jpg",
++                            Name = "Marcia Cremin",
++                            Position = 7,
++                            Salary = 90414m,
++                            Type = 1
++                        },
++                        new
++                        {
++                            Id = 30,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/1189.jpg",
++                            Name = "Estelle Greenholt",
++                            Position = 0,
++                            Salary = 52666m,
++                            Type = 2
++                        },
++                        new
++                        {
++                            Id = 31,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/811.jpg",
++                            Name = "Helena Stracke",
++                            Position = 1,
++                            Salary = 62390m,
++                            Type = 2
++                        },
++                        new
++                        {
++                            Id = 32,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/933.jpg",
++                            Name = "Samanta Mayert",
++                            Position = 7,
++                            Salary = 78554m,
++                            Type = 1
++                        },
++                        new
++                        {
++                            Id = 33,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/438.jpg",
++                            Name = "Mitchell Feil",
++                            Position = 3,
++                            Salary = 67377m,
++                            Type = 0
++                        },
++                        new
++                        {
++                            Id = 34,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/573.jpg",
++                            Name = "Sarai Batz",
++                            Position = 9,
++                            Salary = 76405m,
++                            Type = 0
++                        },
++                        new
++                        {
++                            Id = 35,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/1010.jpg",
++                            Name = "Heaven Jerde",
++                            Position = 5,
++                            Salary = 66707m,
++                            Type = 1
++                        },
++                        new
++                        {
++                            Id = 36,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/790.jpg",
++                            Name = "Henderson Bergnaum",
++                            Position = 5,
++                            Salary = 66596m,
++                            Type = 3
++                        },
++                        new
++                        {
++                            Id = 37,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/726.jpg",
++                            Name = "Earnestine Dickinson",
++                            Position = 4,
++                            Salary = 94882m,
++                            Type = 3
++                        },
++                        new
++                        {
++                            Id = 38,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/190.jpg",
++                            Name = "Deven Dach",
++                            Position = 3,
++                            Salary = 40342m,
++                            Type = 1
++                        },
++                        new
++                        {
++                            Id = 39,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/1095.jpg",
++                            Name = "Scot Hettinger",
++                            Position = 4,
++                            Salary = 46603m,
++                            Type = 2
++                        },
++                        new
++                        {
++                            Id = 40,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/668.jpg",
++                            Name = "Tatum Johns",
++                            Position = 4,
++                            Salary = 93370m,
++                            Type = 2
++                        },
++                        new
++                        {
++                            Id = 41,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/1170.jpg",
++                            Name = "Kay Cartwright",
++                            Position = 4,
++                            Salary = 35709m,
++                            Type = 1
++                        },
++                        new
++                        {
++                            Id = 42,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/691.jpg",
++                            Name = "Marshall Keebler",
++                            Position = 6,
++                            Salary = 95460m,
++                            Type = 2
++                        },
++                        new
++                        {
++                            Id = 43,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/819.jpg",
++                            Name = "Amir Hegmann",
++                            Position = 5,
++                            Salary = 74360m,
++                            Type = 0
++                        },
++                        new
++                        {
++                            Id = 44,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/112.jpg",
++                            Name = "Dovie Gutmann",
++                            Position = 7,
++                            Salary = 56716m,
++                            Type = 0
++                        },
++                        new
++                        {
++                            Id = 45,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/1054.jpg",
++                            Name = "Richie Kunde",
++                            Position = 0,
++                            Salary = 47242m,
++                            Type = 3
++                        },
++                        new
++                        {
++                            Id = 46,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/860.jpg",
++                            Name = "Jailyn Koelpin",
++                            Position = 1,
++                            Salary = 83978m,
++                            Type = 3
++                        },
++                        new
++                        {
++                            Id = 47,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/1084.jpg",
++                            Name = "Shannon Bogisich",
++                            Position = 2,
++                            Salary = 62063m,
++                            Type = 2
++                        },
++                        new
++                        {
++                            Id = 48,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/845.jpg",
++                            Name = "Mavis Steuber",
++                            Position = 7,
++                            Salary = 58624m,
++                            Type = 0
++                        },
++                        new
++                        {
++                            Id = 49,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/557.jpg",
++                            Name = "Lorine Block",
++                            Position = 3,
++                            Salary = 94796m,
++                            Type = 3
++                        },
++                        new
++                        {
++                            Id = 50,
++                            ImgUrl = "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/192.jpg",
++                            Name = "Jolie King",
++                            Position = 2,
++                            Salary = 60565m,
++                            Type = 2
++                        });
++                });
++
++            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
++                {
++                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
++                        .WithMany()
++                        .HasForeignKey("RoleId")
++                        .OnDelete(DeleteBehavior.Cascade)
++                        .IsRequired();
++                });
++
++            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
++                {
++                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
++                        .WithMany()
++                        .HasForeignKey("UserId")
++                        .OnDelete(DeleteBehavior.Cascade)
++                        .IsRequired();
++                });
++
++            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
++                {
++                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
++                        .WithMany()
++                        .HasForeignKey("UserId")
++                        .OnDelete(DeleteBehavior.Cascade)
++                        .IsRequired();
++                });
++
++            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<string>", b =>
++                {
++                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
++                        .WithMany()
++                        .HasForeignKey("RoleId")
++                        .OnDelete(DeleteBehavior.Cascade)
++                        .IsRequired();
++
++                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
++                        .WithMany()
++                        .HasForeignKey("UserId")
++                        .OnDelete(DeleteBehavior.Cascade)
++                        .IsRequired();
++                });
++
++            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
++                {
++                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
++                        .WithMany()
++                        .HasForeignKey("UserId")
++                        .OnDelete(DeleteBehavior.Cascade)
++                        .IsRequired();
++                });
++#pragma warning restore 612, 618
++        }
++    }
++}
+Index: TCSASystems.Blazor.EmployeeManagement/Migrations/20250321192712_InitMySQL.cs
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/TCSASystems.Blazor.EmployeeManagement/Migrations/20250321192712_InitMySQL.cs b/TCSASystems.Blazor.EmployeeManagement/Migrations/20250321192712_InitMySQL.cs
+new file mode 100644
+--- /dev/null	(date 1742838547254)
++++ b/TCSASystems.Blazor.EmployeeManagement/Migrations/20250321192712_InitMySQL.cs	(date 1742838547254)
+@@ -0,0 +1,344 @@
++using System;
++using Microsoft.EntityFrameworkCore.Metadata;
++using Microsoft.EntityFrameworkCore.Migrations;
++
++#nullable disable
++
++#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
++
++namespace TCSASystems.Blazor.EmployeeManagement.Migrations
++{
++    /// <inheritdoc />
++    public partial class InitMySQL : Migration
++    {
++        /// <inheritdoc />
++        protected override void Up(MigrationBuilder migrationBuilder)
++        {
++            migrationBuilder.AlterDatabase()
++                .Annotation("MySql:CharSet", "utf8mb4");
++
++            migrationBuilder.CreateTable(
++                name: "AspNetRoles",
++                columns: table => new
++                {
++                    Id = table.Column<string>(type: "varchar(255)", nullable: false)
++                        .Annotation("MySql:CharSet", "utf8mb4"),
++                    Name = table.Column<string>(type: "varchar(256)", maxLength: 256, nullable: true)
++                        .Annotation("MySql:CharSet", "utf8mb4"),
++                    NormalizedName = table.Column<string>(type: "varchar(256)", maxLength: 256, nullable: true)
++                        .Annotation("MySql:CharSet", "utf8mb4"),
++                    ConcurrencyStamp = table.Column<string>(type: "longtext", nullable: true)
++                        .Annotation("MySql:CharSet", "utf8mb4")
++                },
++                constraints: table =>
++                {
++                    table.PrimaryKey("PK_AspNetRoles", x => x.Id);
++                })
++                .Annotation("MySql:CharSet", "utf8mb4");
++
++            migrationBuilder.CreateTable(
++                name: "AspNetUsers",
++                columns: table => new
++                {
++                    Id = table.Column<string>(type: "varchar(255)", nullable: false)
++                        .Annotation("MySql:CharSet", "utf8mb4"),
++                    UserName = table.Column<string>(type: "varchar(256)", maxLength: 256, nullable: true)
++                        .Annotation("MySql:CharSet", "utf8mb4"),
++                    NormalizedUserName = table.Column<string>(type: "varchar(256)", maxLength: 256, nullable: true)
++                        .Annotation("MySql:CharSet", "utf8mb4"),
++                    Email = table.Column<string>(type: "varchar(256)", maxLength: 256, nullable: true)
++                        .Annotation("MySql:CharSet", "utf8mb4"),
++                    NormalizedEmail = table.Column<string>(type: "varchar(256)", maxLength: 256, nullable: true)
++                        .Annotation("MySql:CharSet", "utf8mb4"),
++                    EmailConfirmed = table.Column<bool>(type: "tinyint(1)", nullable: false),
++                    PasswordHash = table.Column<string>(type: "longtext", nullable: true)
++                        .Annotation("MySql:CharSet", "utf8mb4"),
++                    SecurityStamp = table.Column<string>(type: "longtext", nullable: true)
++                        .Annotation("MySql:CharSet", "utf8mb4"),
++                    ConcurrencyStamp = table.Column<string>(type: "longtext", nullable: true)
++                        .Annotation("MySql:CharSet", "utf8mb4"),
++                    PhoneNumber = table.Column<string>(type: "longtext", nullable: true)
++                        .Annotation("MySql:CharSet", "utf8mb4"),
++                    PhoneNumberConfirmed = table.Column<bool>(type: "tinyint(1)", nullable: false),
++                    TwoFactorEnabled = table.Column<bool>(type: "tinyint(1)", nullable: false),
++                    LockoutEnd = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: true),
++                    LockoutEnabled = table.Column<bool>(type: "tinyint(1)", nullable: false),
++                    AccessFailedCount = table.Column<int>(type: "int", nullable: false)
++                },
++                constraints: table =>
++                {
++                    table.PrimaryKey("PK_AspNetUsers", x => x.Id);
++                })
++                .Annotation("MySql:CharSet", "utf8mb4");
++
++            migrationBuilder.CreateTable(
++                name: "Employees",
++                columns: table => new
++                {
++                    Id = table.Column<int>(type: "int", nullable: false)
++                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
++                    Name = table.Column<string>(type: "longtext", nullable: false)
++                        .Annotation("MySql:CharSet", "utf8mb4"),
++                    ImgUrl = table.Column<string>(type: "longtext", nullable: false)
++                        .Annotation("MySql:CharSet", "utf8mb4"),
++                    Salary = table.Column<decimal>(type: "decimal(65,30)", nullable: false),
++                    Type = table.Column<int>(type: "int", nullable: false),
++                    Position = table.Column<int>(type: "int", nullable: false)
++                },
++                constraints: table =>
++                {
++                    table.PrimaryKey("PK_Employees", x => x.Id);
++                })
++                .Annotation("MySql:CharSet", "utf8mb4");
++
++            migrationBuilder.CreateTable(
++                name: "AspNetRoleClaims",
++                columns: table => new
++                {
++                    Id = table.Column<int>(type: "int", nullable: false)
++                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
++                    RoleId = table.Column<string>(type: "varchar(255)", nullable: false)
++                        .Annotation("MySql:CharSet", "utf8mb4"),
++                    ClaimType = table.Column<string>(type: "longtext", nullable: true)
++                        .Annotation("MySql:CharSet", "utf8mb4"),
++                    ClaimValue = table.Column<string>(type: "longtext", nullable: true)
++                        .Annotation("MySql:CharSet", "utf8mb4")
++                },
++                constraints: table =>
++                {
++                    table.PrimaryKey("PK_AspNetRoleClaims", x => x.Id);
++                    table.ForeignKey(
++                        name: "FK_AspNetRoleClaims_AspNetRoles_RoleId",
++                        column: x => x.RoleId,
++                        principalTable: "AspNetRoles",
++                        principalColumn: "Id",
++                        onDelete: ReferentialAction.Cascade);
++                })
++                .Annotation("MySql:CharSet", "utf8mb4");
++
++            migrationBuilder.CreateTable(
++                name: "AspNetUserClaims",
++                columns: table => new
++                {
++                    Id = table.Column<int>(type: "int", nullable: false)
++                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
++                    UserId = table.Column<string>(type: "varchar(255)", nullable: false)
++                        .Annotation("MySql:CharSet", "utf8mb4"),
++                    ClaimType = table.Column<string>(type: "longtext", nullable: true)
++                        .Annotation("MySql:CharSet", "utf8mb4"),
++                    ClaimValue = table.Column<string>(type: "longtext", nullable: true)
++                        .Annotation("MySql:CharSet", "utf8mb4")
++                },
++                constraints: table =>
++                {
++                    table.PrimaryKey("PK_AspNetUserClaims", x => x.Id);
++                    table.ForeignKey(
++                        name: "FK_AspNetUserClaims_AspNetUsers_UserId",
++                        column: x => x.UserId,
++                        principalTable: "AspNetUsers",
++                        principalColumn: "Id",
++                        onDelete: ReferentialAction.Cascade);
++                })
++                .Annotation("MySql:CharSet", "utf8mb4");
++
++            migrationBuilder.CreateTable(
++                name: "AspNetUserLogins",
++                columns: table => new
++                {
++                    LoginProvider = table.Column<string>(type: "varchar(255)", nullable: false)
++                        .Annotation("MySql:CharSet", "utf8mb4"),
++                    ProviderKey = table.Column<string>(type: "varchar(255)", nullable: false)
++                        .Annotation("MySql:CharSet", "utf8mb4"),
++                    ProviderDisplayName = table.Column<string>(type: "longtext", nullable: true)
++                        .Annotation("MySql:CharSet", "utf8mb4"),
++                    UserId = table.Column<string>(type: "varchar(255)", nullable: false)
++                        .Annotation("MySql:CharSet", "utf8mb4")
++                },
++                constraints: table =>
++                {
++                    table.PrimaryKey("PK_AspNetUserLogins", x => new { x.LoginProvider, x.ProviderKey });
++                    table.ForeignKey(
++                        name: "FK_AspNetUserLogins_AspNetUsers_UserId",
++                        column: x => x.UserId,
++                        principalTable: "AspNetUsers",
++                        principalColumn: "Id",
++                        onDelete: ReferentialAction.Cascade);
++                })
++                .Annotation("MySql:CharSet", "utf8mb4");
++
++            migrationBuilder.CreateTable(
++                name: "AspNetUserRoles",
++                columns: table => new
++                {
++                    UserId = table.Column<string>(type: "varchar(255)", nullable: false)
++                        .Annotation("MySql:CharSet", "utf8mb4"),
++                    RoleId = table.Column<string>(type: "varchar(255)", nullable: false)
++                        .Annotation("MySql:CharSet", "utf8mb4")
++                },
++                constraints: table =>
++                {
++                    table.PrimaryKey("PK_AspNetUserRoles", x => new { x.UserId, x.RoleId });
++                    table.ForeignKey(
++                        name: "FK_AspNetUserRoles_AspNetRoles_RoleId",
++                        column: x => x.RoleId,
++                        principalTable: "AspNetRoles",
++                        principalColumn: "Id",
++                        onDelete: ReferentialAction.Cascade);
++                    table.ForeignKey(
++                        name: "FK_AspNetUserRoles_AspNetUsers_UserId",
++                        column: x => x.UserId,
++                        principalTable: "AspNetUsers",
++                        principalColumn: "Id",
++                        onDelete: ReferentialAction.Cascade);
++                })
++                .Annotation("MySql:CharSet", "utf8mb4");
++
++            migrationBuilder.CreateTable(
++                name: "AspNetUserTokens",
++                columns: table => new
++                {
++                    UserId = table.Column<string>(type: "varchar(255)", nullable: false)
++                        .Annotation("MySql:CharSet", "utf8mb4"),
++                    LoginProvider = table.Column<string>(type: "varchar(255)", nullable: false)
++                        .Annotation("MySql:CharSet", "utf8mb4"),
++                    Name = table.Column<string>(type: "varchar(255)", nullable: false)
++                        .Annotation("MySql:CharSet", "utf8mb4"),
++                    Value = table.Column<string>(type: "longtext", nullable: true)
++                        .Annotation("MySql:CharSet", "utf8mb4")
++                },
++                constraints: table =>
++                {
++                    table.PrimaryKey("PK_AspNetUserTokens", x => new { x.UserId, x.LoginProvider, x.Name });
++                    table.ForeignKey(
++                        name: "FK_AspNetUserTokens_AspNetUsers_UserId",
++                        column: x => x.UserId,
++                        principalTable: "AspNetUsers",
++                        principalColumn: "Id",
++                        onDelete: ReferentialAction.Cascade);
++                })
++                .Annotation("MySql:CharSet", "utf8mb4");
++
++            migrationBuilder.InsertData(
++                table: "Employees",
++                columns: new[] { "Id", "ImgUrl", "Name", "Position", "Salary", "Type" },
++                values: new object[,]
++                {
++                    { 1, "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/225.jpg", "Nora Kulas", 8, 59195m, 0 },
++                    { 2, "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/857.jpg", "Freida Cartwright", 8, 67616m, 2 },
++                    { 3, "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/751.jpg", "Faustino Herman", 0, 81583m, 3 },
++                    { 4, "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/1047.jpg", "Godfrey Parker", 6, 54628m, 0 },
++                    { 5, "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/1.jpg", "Lessie Fahey", 1, 44614m, 2 },
++                    { 6, "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/987.jpg", "Adela Nolan", 1, 57831m, 3 },
++                    { 7, "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/16.jpg", "Hester Hodkiewicz", 0, 60909m, 2 },
++                    { 8, "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/937.jpg", "Bernardo Conroy", 7, 65305m, 2 },
++                    { 9, "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/630.jpg", "Ashleigh Bogisich", 2, 96102m, 3 },
++                    { 10, "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/280.jpg", "Meda Jerde", 3, 86047m, 0 },
++                    { 11, "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/95.jpg", "Clementine Bode", 6, 77600m, 3 },
++                    { 12, "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/139.jpg", "Marge Bernhard", 9, 34132m, 3 },
++                    { 13, "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/891.jpg", "Olga Schultz", 8, 42368m, 2 },
++                    { 14, "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/704.jpg", "Marie Schuppe", 3, 56603m, 3 },
++                    { 15, "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/936.jpg", "Josianne Fisher", 6, 91276m, 3 },
++                    { 16, "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/613.jpg", "Osborne Botsford", 7, 85966m, 1 },
++                    { 17, "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/1166.jpg", "Delilah Dickinson", 1, 80345m, 0 },
++                    { 18, "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/1005.jpg", "Jermey Mosciski", 2, 83753m, 0 },
++                    { 19, "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/2.jpg", "Madonna Zboncak", 5, 58519m, 0 },
++                    { 20, "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/27.jpg", "Jaren Dicki", 0, 54498m, 0 },
++                    { 21, "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/1043.jpg", "Marc Fadel", 8, 90102m, 0 },
++                    { 22, "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/455.jpg", "Alycia McClure", 7, 88080m, 2 },
++                    { 23, "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/1056.jpg", "Giuseppe Koepp", 6, 45733m, 1 },
++                    { 24, "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/1133.jpg", "Bernard Brown", 5, 32217m, 2 },
++                    { 25, "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/442.jpg", "Gina Kuvalis", 2, 48631m, 2 },
++                    { 26, "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/118.jpg", "Shany Konopelski", 7, 37239m, 3 },
++                    { 27, "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/114.jpg", "Jarvis O'Reilly", 8, 89908m, 3 },
++                    { 28, "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/151.jpg", "Sven Schowalter", 4, 87837m, 3 },
++                    { 29, "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/207.jpg", "Marcia Cremin", 7, 90414m, 1 },
++                    { 30, "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/1189.jpg", "Estelle Greenholt", 0, 52666m, 2 },
++                    { 31, "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/811.jpg", "Helena Stracke", 1, 62390m, 2 },
++                    { 32, "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/933.jpg", "Samanta Mayert", 7, 78554m, 1 },
++                    { 33, "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/438.jpg", "Mitchell Feil", 3, 67377m, 0 },
++                    { 34, "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/573.jpg", "Sarai Batz", 9, 76405m, 0 },
++                    { 35, "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/1010.jpg", "Heaven Jerde", 5, 66707m, 1 },
++                    { 36, "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/790.jpg", "Henderson Bergnaum", 5, 66596m, 3 },
++                    { 37, "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/726.jpg", "Earnestine Dickinson", 4, 94882m, 3 },
++                    { 38, "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/190.jpg", "Deven Dach", 3, 40342m, 1 },
++                    { 39, "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/1095.jpg", "Scot Hettinger", 4, 46603m, 2 },
++                    { 40, "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/668.jpg", "Tatum Johns", 4, 93370m, 2 },
++                    { 41, "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/1170.jpg", "Kay Cartwright", 4, 35709m, 1 },
++                    { 42, "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/691.jpg", "Marshall Keebler", 6, 95460m, 2 },
++                    { 43, "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/819.jpg", "Amir Hegmann", 5, 74360m, 0 },
++                    { 44, "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/112.jpg", "Dovie Gutmann", 7, 56716m, 0 },
++                    { 45, "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/1054.jpg", "Richie Kunde", 0, 47242m, 3 },
++                    { 46, "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/860.jpg", "Jailyn Koelpin", 1, 83978m, 3 },
++                    { 47, "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/1084.jpg", "Shannon Bogisich", 2, 62063m, 2 },
++                    { 48, "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/845.jpg", "Mavis Steuber", 7, 58624m, 0 },
++                    { 49, "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/557.jpg", "Lorine Block", 3, 94796m, 3 },
++                    { 50, "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/192.jpg", "Jolie King", 2, 60565m, 2 }
++                });
++
++            migrationBuilder.CreateIndex(
++                name: "IX_AspNetRoleClaims_RoleId",
++                table: "AspNetRoleClaims",
++                column: "RoleId");
++
++            migrationBuilder.CreateIndex(
++                name: "RoleNameIndex",
++                table: "AspNetRoles",
++                column: "NormalizedName",
++                unique: true);
++
++            migrationBuilder.CreateIndex(
++                name: "IX_AspNetUserClaims_UserId",
++                table: "AspNetUserClaims",
++                column: "UserId");
++
++            migrationBuilder.CreateIndex(
++                name: "IX_AspNetUserLogins_UserId",
++                table: "AspNetUserLogins",
++                column: "UserId");
++
++            migrationBuilder.CreateIndex(
++                name: "IX_AspNetUserRoles_RoleId",
++                table: "AspNetUserRoles",
++                column: "RoleId");
++
++            migrationBuilder.CreateIndex(
++                name: "EmailIndex",
++                table: "AspNetUsers",
++                column: "NormalizedEmail");
++
++            migrationBuilder.CreateIndex(
++                name: "UserNameIndex",
++                table: "AspNetUsers",
++                column: "NormalizedUserName",
++                unique: true);
++        }
++
++        /// <inheritdoc />
++        protected override void Down(MigrationBuilder migrationBuilder)
++        {
++            migrationBuilder.DropTable(
++                name: "AspNetRoleClaims");
++
++            migrationBuilder.DropTable(
++                name: "AspNetUserClaims");
++
++            migrationBuilder.DropTable(
++                name: "AspNetUserLogins");
++
++            migrationBuilder.DropTable(
++                name: "AspNetUserRoles");
++
++            migrationBuilder.DropTable(
++                name: "AspNetUserTokens");
++
++            migrationBuilder.DropTable(
++                name: "Employees");
++
++            migrationBuilder.DropTable(
++                name: "AspNetRoles");
++
++            migrationBuilder.DropTable(
++                name: "AspNetUsers");
++        }
++    }
++}
+Index: TCSASystems.Blazor.EmployeeManagement/Program.cs
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>var builder = WebApplication.CreateBuilder(args);\n\n// Add services to the container.\nbuilder.Services.AddRazorPages();\nbuilder.Services.AddServerSideBlazor();\n\nvar app = builder.Build();\n\n// Configure the HTTP request pipeline.\nif (!app.Environment.IsDevelopment())\n{\n    app.UseExceptionHandler(\"/Error\");\n    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.\n    app.UseHsts();\n}\n\napp.UseHttpsRedirection();\n\napp.UseStaticFiles();\n\napp.UseRouting();\n\napp.MapBlazorHub();\napp.MapFallbackToPage(\"/_Host\");\n\napp.Run();\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/TCSASystems.Blazor.EmployeeManagement/Program.cs b/TCSASystems.Blazor.EmployeeManagement/Program.cs
+--- a/TCSASystems.Blazor.EmployeeManagement/Program.cs	(revision 0a5d3c0deaae285972761d2202564745230df9f0)
++++ b/TCSASystems.Blazor.EmployeeManagement/Program.cs	(date 1742838547354)
+@@ -1,11 +1,37 @@
++using Microsoft.AspNetCore.Identity;
++using Microsoft.EntityFrameworkCore;
++using TCSASystems.Blazor.EmployeeManagement.Data;
++using TCSASystems.Blazor.EmployeeManagement.Services;
+ var builder = WebApplication.CreateBuilder(args);
+ 
+ // Add services to the container.
+ builder.Services.AddRazorPages();
+ builder.Services.AddServerSideBlazor();
+ 
++builder.Services.AddScoped<IEmployeeService, EmployeeService>();
++
++var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
++builder.Services.AddDbContextFactory<DataContext>(options =>
++    options.UseMySql(connectionString, new MySqlServerVersion(new Version(8, 0, 36))));
++builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
++{
++    options.Password.RequireDigit = false;
++    options.Password.RequiredLength = 5;
++    options.Password.RequireLowercase = false;
++    options.Password.RequireUppercase = false;
++    options.Password.RequireNonAlphanumeric = false;
++    options.SignIn.RequireConfirmedEmail = false;
++})
++    .AddEntityFrameworkStores<DataContext>();
++
+ var app = builder.Build();
+ 
++using (var scope = app.Services.CreateScope())
++{
++    var dbContext = scope.ServiceProvider.GetRequiredService<DataContext>();
++    dbContext.Database.EnsureCreated();
++}
++
+ // Configure the HTTP request pipeline.
+ if (!app.Environment.IsDevelopment())
+ {
+@@ -20,6 +46,9 @@
+ 
+ app.UseRouting();
+ 
++app.UseAuthentication();
++app.UseAuthorization();
++
+ app.MapBlazorHub();
+ app.MapFallbackToPage("/_Host");
+ 
+Index: TCSASystems.Blazor.EmployeeManagement/Data/DataContext.cs
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/TCSASystems.Blazor.EmployeeManagement/Data/DataContext.cs b/TCSASystems.Blazor.EmployeeManagement/Data/DataContext.cs
+new file mode 100644
+--- /dev/null	(date 1742838547261)
++++ b/TCSASystems.Blazor.EmployeeManagement/Data/DataContext.cs	(date 1742838547261)
+@@ -0,0 +1,65 @@
++using Bogus;
++using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
++using Microsoft.EntityFrameworkCore;
++using TCSASystems.Blazor.EmployeeManagement.Models;
++
++namespace TCSASystems.Blazor.EmployeeManagement.Data;
++
++public class DataContext: IdentityDbContext
++{
++    public DbSet<Employee> Employees { get; set; }
++    public DataContext(DbContextOptions options) : base(options) { }
++
++    protected override void OnModelCreating(ModelBuilder modelBuilder)
++    {
++        base.OnModelCreating(modelBuilder);
++
++        modelBuilder.Entity<Employee>().HasData(GetEmployees());
++    }
++
++    private List<Employee> GetEmployees()
++    {
++        var employees = new List<Employee>();
++        var faker = new Faker("en"); // Specify the language for name generation
++
++        for (int i = 1; i <= 50; i++)
++        {
++            var employee = new Employee
++            {
++                Id = i,
++                ImgUrl = faker.Internet.Avatar(),
++                Name = faker.Name.FullName(),
++                Salary = GetRandomSalary(),
++                Type = GetRandomEmployeeType(),
++                Position = GetRandomPosition()
++            };
++
++            employees.Add(employee);
++        }
++
++        return employees;
++    }
++
++    private decimal GetRandomSalary()
++    {
++        var random = new Random();
++        decimal salary = random.Next(30000, 100000); // Generates a random salary between $30,000 and $100,000
++        return salary;
++    }
++
++    // Method to get a random employee type
++    private EmployeeType GetRandomEmployeeType()
++    {
++        var random = new Random();
++        var types = Enum.GetValues(typeof(EmployeeType));
++        return (EmployeeType)types.GetValue(random.Next(types.Length));
++    }
++
++    // Method to get a random position
++    private Position GetRandomPosition()
++    {
++        var random = new Random();
++        var positions = Enum.GetValues(typeof(Position));
++        return (Position)positions.GetValue(random.Next(positions.Length));
++    }
++}
+Index: TCSASystems.Blazor.EmployeeManagement/Components/DeleteConfirmationModal.razor
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/TCSASystems.Blazor.EmployeeManagement/Components/DeleteConfirmationModal.razor b/TCSASystems.Blazor.EmployeeManagement/Components/DeleteConfirmationModal.razor
+new file mode 100644
+--- /dev/null	(date 1742838547268)
++++ b/TCSASystems.Blazor.EmployeeManagement/Components/DeleteConfirmationModal.razor	(date 1742838547268)
+@@ -0,0 +1,14 @@
++<div class="modal d-block" tabindex="-1" role="dialog">
++    <div class="modal-dialog" role="document">
++        <div class="modal-content">
++            <div class="modal-body">
++                @ChildContent
++            </div>
++        </div>
++    </div>
++</div>
++
++@code {
++    [Parameter] public RenderFragment ChildContent { get; set; }
++    [Parameter] public RenderFragment FooterContent { get; set; }
++}
