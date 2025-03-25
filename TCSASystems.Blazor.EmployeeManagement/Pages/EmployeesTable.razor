@@ -9,9 +9,21 @@
     <Card>
         <div class="table-responsive">
             <div class="form-floating mb-3">
-                <input type="text" class="form-control" id="floatingInput" placeholder="Name here" @oninput="FilterEmployees" />
-                <label for="floatingInput">Filter by name</label>
+                <input type="text" class="form-control" id="nameFilter" placeholder="Filter by name" @oninput="FilterEmployees" />
+                <label for="nameFilter">Filter by name</label>
             </div>
+
+            <div class="form-floating mb-3">
+                <select class="form-select" id="typeFilter" @onchange="FilterEmployees">
+                    <option value="all">All Types</option> <!-- Thêm lựa chọn 'All Types' -->
+                    <option value="freelance">Freelance</option>
+                    <option value="part-time">Part-Time</option>
+                    <option value="casual">Casual</option>
+                    <option value="full-time">Full-Time</option>
+                </select>
+                <label for="typeFilter">Filter by Employee Type</label>
+            </div>
+
             <table class="table table-borderless mb-0">
                 <tbody>
                     @foreach (var employee in Employees)
@@ -46,6 +58,9 @@
     private bool ShowWarning = false;
     private string ErrorMessage = "";
 
+    private string FilterName = "";
+    private string FilterType = "all"; // Mặc định là 'All Types'
+
     protected override async Task OnInitializedAsync()
     {
         var response = await EmployeeService.GetEmployees();
@@ -57,8 +72,8 @@
         }
         else
         {
-            Employees = response.Employees;
-            EmployeesBackup = Employees;
+            Employees = response.Employees.ToList();
+            EmployeesBackup = response.Employees.ToList();
         }
     }
 
@@ -67,7 +82,8 @@
         EmployeeType.Freelance => "freelance",
         EmployeeType.PartTime => "part-time",
         EmployeeType.Casual => "casual",
-        EmployeeType.FullTime => "full-time"
+        EmployeeType.FullTime => "full-time",
+        _ => ""
     };
 
     private void NavigateToEmployeeDetail(int employeeId)
@@ -77,8 +93,25 @@
 
     private void FilterEmployees(ChangeEventArgs e)
     {
-        Employees = EmployeesBackup;
-        Employees = Employees.Where(x => x.Name.IndexOf(e.Value.ToString(), StringComparison.OrdinalIgnoreCase) >= 0).ToList();
+        var target = e.Value?.ToString() ?? "";
+
+        if (!string.IsNullOrEmpty(target))
+        {
+            if (target == "freelance" || target == "part-time" || target == "casual" || target == "full-time" || target == "all")
+            {
+                FilterType = target; // Lọc theo loại nhân viên
+            }
+            else
+            {
+                FilterName = target; // Lọc theo tên nhân viên
+            }
+        }
+
+        // Lọc danh sách nhân viên
+        Employees = EmployeesBackup
+            .Where(x => (string.IsNullOrEmpty(FilterName) || x.Name.Contains(FilterName, StringComparison.OrdinalIgnoreCase)) &&
+                        (FilterType == "all" || GetEmployeeTypeStyle(x.Type) == FilterType))
+            .ToList();
     }
 
     private void DismissWarning()
