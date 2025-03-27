@@ -1,104 +1,253 @@
 @page "/timetracking"
 @using TCSASystems.Blazor.EmployeeManagement.Models
+@using Microsoft.EntityFrameworkCore
 @inject IEmployeeService EmployeeService
 @inject IAttendanceService AttendanceService
 @inject NavigationManager NavigationManager
 
-<h3>Time Tracking</h3>
+<div class="container mt-4">
+    <h3 class="mb-4">Time Tracking</h3>
 
-@if (Employees == null)
-{
-    <p>Loading employees...</p>
-}
-else
-{
-    <div class="form-group">
-        <label for="employee">Select Employee:</label>
-        <select id="employee" class="form-control" @bind="SelectedEmployeeId">
-            <option value="0">Select an employee...</option>
-            @foreach (var employee in Employees)
+    @if (ErrorMessage != null)
+    {
+        <div class="alert alert-danger">
+            @ErrorMessage
+            @if (DebugMessage != null)
             {
-                <option value="@employee.Id">@employee.Name (@employee.Position.GetDisplayName())</option>
+                <div class="mt-2 small text-muted">
+                    Debug Info: @DebugMessage
+                </div>
             }
-        </select>
-    </div>
+        </div>
+    }
 
-    <div class="form-group">
-        <label for="date">Date:</label>
-        <input type="date" id="date" class="form-control" @bind="DateValue" />
-    </div>
+    @if (SuccessMessage != null)
+    {
+        <div class="alert alert-success">
+            @SuccessMessage
+        </div>
+    }
 
-    <div class="form-group">
-        <label for="checkin">Check In Time:</label>
-        <input type="time" id="checkin" class="form-control" @bind="CheckInValue" />
-    </div>
+    @if (Employees == null)
+    {
+        <div class="text-center">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    }
+    else if (!Employees.Any())
+    {
+        <div class="alert alert-warning">
+            No employees found. Please add employees first.
+        </div>
+    }
+    else
+    {
+        <div class="card">
+            <div class="card-body">
+                <form @onsubmit:preventDefault>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="employee" class="form-label">Select Employee:</label>
+                            <select id="employee" class="form-select" @bind="SelectedEmployeeId">
+                                <option value="0">Select an employee...</option>
+                                @foreach (var employee in Employees)
+                                {
+                                    <option value="@employee.Id">@employee.Name (@employee.Position.GetDisplayName())</option>
+                                }
+                            </select>
+                        </div>
 
-    <div class="form-group">
-        <label for="checkout">Check Out Time:</label>
-        <input type="time" id="checkout" class="form-control" @bind="CheckOutValue" />
-    </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="date" class="form-label">Date:</label>
+                            <input type="date" id="date" class="form-control" @bind="DateValue" max="@DateTime.Today.ToString("yyyy-MM-dd")" />
+                        </div>
 
-    <button class="btn btn-primary" @onclick="SaveAttendance">Save Attendance</button>
-}
+                        <div class="col-md-6 mb-3">
+                            <label for="checkin" class="form-label">Check In Time:</label>
+                            <input type="time" id="checkin" class="form-control" @bind="CheckInValue" />
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="checkout" class="form-label">Check Out Time (Optional):</label>
+                            <input type="time" id="checkout" class="form-control" @bind="CheckOutValue" />
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center">
+                        <button type="submit" class="btn btn-primary" @onclick="SaveAttendance" disabled="@IsSaving">
+                            @if (IsSaving)
+                            {
+                                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                            }
+                            Save Attendance
+                        </button>
+                        <button type="button" class="btn btn-secondary" @onclick="ResetForm">Reset Form</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        @if (RecentAttendances?.Any() == true)
+        {
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Recent Attendance Records</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Check In</th>
+                                    <th>Check Out</th>
+                                    <th>Hours Worked</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var attendance in RecentAttendances)
+                                {
+                                    <tr>
+                                        <td>@attendance.Date.ToString("yyyy-MM-dd")</td>
+                                        <td>@attendance.CheckIn.ToString("HH:mm")</td>
+                                        <td>@(attendance.CheckOut?.ToString("HH:mm") ?? "-")</td>
+                                        <td>@attendance.HoursWorked.ToString("F2")</td>
+                                        <td>
+                                            @if (attendance.IsLate)
+                                            {
+                                                <span class="badge bg-warning">Late</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-success">On Time</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+</div>
 
 @code {
     private List<Employee>? Employees { get; set; }
     private int SelectedEmployeeId { get; set; }
     private Attendance NewAttendance { get; set; } = new Attendance();
+    private string? ErrorMessage { get; set; }
+    private string? SuccessMessage { get; set; }
+    private string? DebugMessage { get; set; }
+    private bool IsSaving { get; set; }
+    private List<Attendance>? RecentAttendances { get; set; }
 
-    // Dùng DateTime? thay vì string
     private DateTime? DateValue { get; set; }
-
-    // Dùng TimeOnly? thay vì string
     private TimeOnly? CheckInValue { get; set; }
     private TimeOnly? CheckOutValue { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
-        var response = await EmployeeService.GetEmployees();
-        Employees = response.Employees; // Điều chỉnh nếu API trả về khác
+        try
+        {
+            var response = await EmployeeService.GetEmployees();
+            Employees = response.Employees;
+        }
+        catch (DbUpdateException ex)
+        {
+            ErrorMessage = "Database connection error. Please check if MySQL is running.";
+            DebugMessage = $"Database Error: {ex.Message}\nInner Exception: {ex.InnerException?.Message}";
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = "Failed to load employees.";
+            DebugMessage = ex.Message;
+        }
     }
 
     private async Task SaveAttendance()
     {
-        if (SelectedEmployeeId == 0)
+        if (IsSaving) return;
+
+        ErrorMessage = null;
+        SuccessMessage = null;
+        DebugMessage = null;
+        IsSaving = true;
+
+        try
         {
-            // Không chọn nhân viên => không cho lưu
-            return;
-        }
+            if (SelectedEmployeeId == 0)
+            {
+                ErrorMessage = "Please select an employee.";
+                return;
+            }
 
-        // Gán EmployeeId
-        NewAttendance.EmployeeId = SelectedEmployeeId;
+            if (!DateValue.HasValue)
+            {
+                ErrorMessage = "Please select a date.";
+                return;
+            }
 
-        // Chuyển đổi Date từ DateTime?
-        NewAttendance.Date = DateValue ?? DateTime.Today;
+            if (!CheckInValue.HasValue)
+            {
+                ErrorMessage = "Please enter check-in time.";
+                return;
+            }
 
-        // Chuyển đổi TimeOnly? sang TimeOnly
-        if (CheckInValue.HasValue)
-        {
+            if (CheckOutValue.HasValue && CheckOutValue.Value <= CheckInValue.Value)
+            {
+                ErrorMessage = "Check-out time must be after check-in time.";
+                return;
+            }
+
+            NewAttendance.EmployeeId = SelectedEmployeeId;
+            NewAttendance.Date = DateValue.Value;
             NewAttendance.CheckIn = CheckInValue.Value;
+            NewAttendance.CheckOut = CheckOutValue;
+
+            DebugMessage = $"Attempting to save attendance for Employee {SelectedEmployeeId} on {DateValue.Value:yyyy-MM-dd}";
+            
+            await AttendanceService.AddAttendance(NewAttendance);
+
+            SuccessMessage = "Attendance record saved successfully!";
+            
+            // Load recent attendance records
+            RecentAttendances = await AttendanceService.GetAttendancesByEmployeeId(SelectedEmployeeId);
+            
+            // Reset form
+            ResetForm();
         }
-        else
+        catch (InvalidOperationException ex)
         {
-            return; // Không có CheckIn thì không lưu
+            ErrorMessage = ex.Message;
+            DebugMessage = $"Validation Error: {ex.Message}";
         }
-
-        if (CheckOutValue.HasValue)
+        catch (DbUpdateException ex)
         {
-            NewAttendance.CheckOut = CheckOutValue.Value;
+            ErrorMessage = "Database error occurred while saving attendance.";
+            DebugMessage = $"Database Error: {ex.Message}\nInner Exception: {ex.InnerException?.Message}";
         }
+        catch (Exception ex)
+        {
+            ErrorMessage = "An unexpected error occurred while saving the attendance record.";
+            DebugMessage = $"Unexpected Error: {ex.Message}";
+        }
+        finally
+        {
+            IsSaving = false;
+        }
+    }
 
-        // Lưu dữ liệu chấm công
-        await AttendanceService.AddAttendance(NewAttendance);
-
-        // Reset form sau khi lưu
+    private void ResetForm()
+    {
         NewAttendance = new Attendance();
         SelectedEmployeeId = 0;
         DateValue = null;
         CheckInValue = null;
         CheckOutValue = null;
-
-        // Chuyển hướng hoặc hiển thị thông báo thành công
-        NavigationManager.NavigateTo("/attendance");
     }
 }

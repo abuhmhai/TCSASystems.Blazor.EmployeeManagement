@@ -8,7 +8,10 @@ public class AddEmployeeForm
     public string Name { get; set; }
 
     [Required]
-    public decimal Salary { get; set; }
+    public decimal? Salary { get; set; }
+
+    [Required]
+    public decimal HourlyRate { get; set; }
 
     [Required]
     public EmployeeType Type { get; set; }

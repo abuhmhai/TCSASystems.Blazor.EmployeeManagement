@@ -25,6 +25,10 @@ else
                             <label for="floatingInput">Salary</label>
                         </div>
                         <div class="form-floating mb-3">
+                            <InputNumber class="form-control" id="floatingInput" placeholder="Hourly Rate here" @bind-Value="addEmployeeForm.HourlyRate" />
+                            <label for="floatingInput">Hourly Rate</label>
+                        </div>
+                        <div class="form-floating mb-3">
                             <InputSelect shadow rounded id="floatingInput" placeholder="Employee here" @bind-Value="addEmployeeForm.Type" class="form-select">
                                 @foreach (EmployeeType type in Enum.GetValues(typeof(EmployeeType)))
                                 {
@@ -90,6 +94,7 @@ else
         addEmployeeForm.Type = Employee.Type;
         addEmployeeForm.Position = Employee.Position;
         addEmployeeForm.Salary = Employee.Salary;
+        addEmployeeForm.HourlyRate = Employee.HourlyRate;
         addEmployeeForm.ImgUrl = Employee.ImgUrl;
     }
 
@@ -99,6 +104,7 @@ else
         Employee.Type = addEmployeeForm.Type;
         Employee.Position = addEmployeeForm.Position;
         Employee.Salary = addEmployeeForm.Salary;
+        Employee.HourlyRate = addEmployeeForm.HourlyRate;
         Employee.ImgUrl = addEmployeeForm.ImgUrl;
 
         var response = await EmployeeService.EditEmployee(Employee);
