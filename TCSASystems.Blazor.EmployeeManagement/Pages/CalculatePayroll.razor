@@ -1,6 +1,7 @@
 @page "/calculate-payroll"
 @using TCSASystems.Blazor.EmployeeManagement.Models
 @using static TCSASystems.Blazor.EmployeeManagement.Components.Warning;
+@inject IJSRuntime JS
 
 @if (ShowWarning)
 {
@@ -40,7 +41,23 @@ else
                             <label for="floatingInput">Hours Worked</label>
                         </div>
 
-                        <button class="btn btn-primary" @onclick="CalculateEmployeePayroll">Calculate Payroll</button>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-primary" @onclick="CalculateEmployeePayroll">Calculate Payroll</button>
+                            @if (calculatedPayroll > 0)
+                            {
+                                <button class="btn btn-success" @onclick="ExportToExcel" disabled="@IsExporting">
+                                    @if (IsExporting)
+                                    {
+                                        <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                                        <span>Exporting...</span>
+                                    }
+                                    else
+                                    {
+                                        <span>Export to Excel</span>
+                                    }
+                                </button>
+                            }
+                        </div>
 
                         @if (calculatedPayroll > 0)
                         {
@@ -59,6 +76,13 @@ else
                         }
                     }
                 }
+
+                @if (!string.IsNullOrEmpty(ErrorMessage))
+                {
+                    <div class="alert alert-danger mt-3">
+                        @ErrorMessage
+                    </div>
+                }
             </div>
         </div>
     </Card>
@@ -76,6 +100,8 @@ else
     private int selectedEmployeeId;
     private int hoursWorked;
     private decimal calculatedPayroll;
+    private bool IsExporting { get; set; }
+    private string ErrorMessage { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -98,6 +124,42 @@ else
         if (employee != null)
         {
             calculatedPayroll = PayrollService.CalculatePayroll(employee, hoursWorked);
+            ErrorMessage = null;
+        }
+    }
+
+    private async Task ExportToExcel()
+    {
+        try
+        {
+            var employee = employees.FirstOrDefault(e => e.Id == selectedEmployeeId);
+            if (employee == null) return;
+
+            IsExporting = true;
+            ErrorMessage = null;
+
+            // Create a single attendance record for this calculation
+            var attendance = new Attendance
+            {
+                Employee = employee,
+                EmployeeId = employee.Id,
+                Date = DateTime.Today,
+                CheckIn = TimeOnly.FromTimeSpan(TimeSpan.FromHours(9)), // 9 AM start
+                CheckOut = TimeOnly.FromTimeSpan(TimeSpan.FromHours(9 + hoursWorked)) // Add worked hours
+            };
+
+            var excelBytes = PayrollService.GeneratePayrollExcel(new List<Attendance> { attendance }, DateTime.Today, DateTime.Today);
+            var fileName = $"Payroll_Calculation_{employee.Name}_{DateTime.Now:yyyyMMdd}.xlsx";
+            var base64 = Convert.ToBase64String(excelBytes);
+            await JS.InvokeVoidAsync("downloadFileFromBase64", base64, fileName);
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Failed to export payroll: {ex.Message}";
+        }
+        finally
+        {
+            IsExporting = false;
         }
     }
 

@@ -1,92 +1,153 @@
 @page "/payroll"
 @using TCSASystems.Blazor.EmployeeManagement.Models
+@using TCSASystems.Blazor.EmployeeManagement.Services
+@using TCSASystems.Blazor.EmployeeManagement.Models.DTOs
 @inject IEmployeeService EmployeeService
 @inject IAttendanceService AttendanceService
+@inject IPayrollService PayrollService
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JS
 
 <h3>Payroll Calculation</h3>
 
-<div class="form-group">
-    <label for="startDate">Start Date:</label>
-    <input type="date" id="startDate" class="form-control" @bind="StartDate" />
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="form-group">
+                <label>Start Date:</label>
+                <input type="date" class="form-control" @bind="StartDate" />
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="form-group">
+                <label>End Date:</label>
+                <input type="date" class="form-control" @bind="EndDate" />
+            </div>
+        </div>
+        <div class="col-md-4 d-flex align-items-end">
+            <button class="btn btn-primary me-2" @onclick="CalculatePayroll">Calculate Payroll</button>
+            <button class="btn btn-success" @onclick="ExportToExcel" disabled="@(PayrollResults == null || IsExporting)">
+                @if (IsExporting)
+                {
+                    <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                    <span>Exporting...</span>
+                }
+                else
+                {
+                    <span>Export to Excel</span>
+                }
+            </button>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(ErrorMessage))
+    {
+        <div class="alert alert-danger mt-3">
+            @ErrorMessage
+        </div>
+    }
+
+    @if (PayrollResults != null && PayrollResults.Any())
+    {
+        <div class="table-responsive mt-4">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Employee</th>
+                        <th>Position</th>
+                        <th>Hours Worked</th>
+                        <th>Hourly Rate</th>
+                        <th>Total Pay</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var result in PayrollResults)
+                    {
+                        <tr>
+                            <td>@result.Employee.Name</td>
+                            <td>@result.Employee.Position.GetDisplayName()</td>
+                            <td>@result.HoursWorked.ToString("F2")</td>
+                            <td>$@result.Employee.HourlyRate.ToString("F2")</td>
+                            <td>$@result.TotalPay.ToString("F2")</td>
+                        </tr>
+                    }
+                    <tr class="table-info">
+                        <td colspan="2"><strong>Grand Total</strong></td>
+                        <td><strong>@PayrollResults.Sum(r => r.HoursWorked).ToString("F2")</strong></td>
+                        <td></td>
+                        <td><strong>$@PayrollResults.Sum(r => r.TotalPay).ToString("F2")</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    }
 </div>
-
-<div class="form-group">
-    <label for="endDate">End Date:</label>
-    <input type="date" id="endDate" class="form-control" @bind="EndDate" />
-</div>
-
-<button class="btn btn-primary" @onclick="CalculatePayroll">Calculate Payroll</button>
-
-@if (PayrollResults != null)
-{
-    <h4>Payroll Results</h4>
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Employee</th>
-                <th>Total Hours</th>
-                <th>Hourly Rate</th>
-                <th>Total Pay</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var result in PayrollResults)
-            {
-                <tr>
-                    <td>@result.Employee.Name</td>
-                    <td>@result.TotalHours</td>
-                    <td>@result.HourlyRate.ToString("C")</td>
-                    <td>@result.TotalPay.ToString("C")</td>
-                </tr>
-            }
-        </tbody>
-    </table>
-}
 
 @code {
     private DateTime StartDate { get; set; } = DateTime.Today.AddDays(-30);
     private DateTime EndDate { get; set; } = DateTime.Today;
     private List<PayrollResult> PayrollResults { get; set; }
+    private List<Attendance> Attendances { get; set; }
+    private Employee Employee { get; set; }
+    private bool IsExporting { get; set; }
+    private string ErrorMessage { get; set; }
 
     private class PayrollResult
     {
         public Employee Employee { get; set; }
-        public double TotalHours { get; set; }
-        public decimal HourlyRate { get; set; }
+        public double HoursWorked { get; set; }
         public decimal TotalPay { get; set; }
     }
 
     private async Task CalculatePayroll()
     {
-        // Get attendance data for the date range
         var attendances = await AttendanceService.GetAttendancesByDateRange(StartDate, EndDate);
+        Attendances = attendances;
 
-        // Group by employee
-        var groupedAttendances = attendances
-            .GroupBy(a => a.EmployeeId)
-            .Select(g => new
+        PayrollResults = attendances
+            .GroupBy(a => a.Employee)
+            .Select(g => new PayrollResult
             {
-                EmployeeId = g.Key,
-                TotalHours = g.Sum(a => a.HoursWorked),
-                Employee = g.First().Employee
-            });
+                Employee = g.Key,
+                HoursWorked = g.Sum(a => a.HoursWorked),
+                TotalPay = g.Sum(a => (decimal)a.HoursWorked * g.Key.HourlyRate)
+            })
+            .OrderBy(r => r.Employee.Name)
+            .ToList();
+    }
 
-        // Calculate payroll
-        PayrollResults = new List<PayrollResult>();
-        foreach (var group in groupedAttendances)
+    private async Task ExportToExcel()
+    {
+        try
         {
-            if (group.Employee == null) continue;
-
-            decimal hourlyRate = group.Employee.HourlyRate;
-            decimal totalPay = (decimal)group.TotalHours * hourlyRate;
-
-            PayrollResults.Add(new PayrollResult
+            if (Attendances == null || !Attendances.Any())
             {
-                Employee = group.Employee,
-                TotalHours = group.TotalHours,
-                HourlyRate = hourlyRate,
-                TotalPay = totalPay
-            });
+                ErrorMessage = "No attendance records to export.";
+                return;
+            }
+
+            if (EndDate < StartDate)
+            {
+                ErrorMessage = "End date must be after start date.";
+                return;
+            }
+
+            IsExporting = true;
+            ErrorMessage = null;
+
+            var excelBytes = PayrollService.GeneratePayrollExcel(Attendances, StartDate, EndDate);
+            var fileName = $"Payroll_Report_{StartDate:yyyyMMdd}_to_{EndDate:yyyyMMdd}.xlsx";
+            var base64 = Convert.ToBase64String(excelBytes);
+            await JS.InvokeVoidAsync("downloadFileFromBase64", base64, fileName);
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Failed to export payroll: {ex.Message}";
+        }
+        finally
+        {
+            IsExporting = false;
         }
     }
+}
 }

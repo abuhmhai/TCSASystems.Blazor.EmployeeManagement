@@ -1,0 +1,207 @@
+@page "/payroll-summary"
+@using TCSASystems.Blazor.EmployeeManagement.Models
+@using TCSASystems.Blazor.EmployeeManagement.Services
+@inject IEmployeeService EmployeeService
+@inject IAttendanceService AttendanceService
+@inject IPayrollService PayrollService
+@inject IJSRuntime JS
+
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-body">
+            <h3 class="card-title mb-4">Payroll Summary</h3>
+
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label>Start Date:</label>
+                        <input type="date" class="form-control" @bind="StartDate" />
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label>End Date:</label>
+                        <input type="date" class="form-control" @bind="EndDate" />
+                    </div>
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <button class="btn btn-primary me-2" @onclick="LoadPayrollData">Load Data</button>
+                    <button class="btn btn-success" @onclick="ExportToExcel" disabled="@(PayrollResults == null || IsExporting)">
+                        @if (IsExporting)
+                        {
+                            <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                            <span>Exporting...</span>
+                        }
+                        else
+                        {
+                            <span>Export to Excel</span>
+                        }
+                    </button>
+                </div>
+            </div>
+
+            @if (!string.IsNullOrEmpty(ErrorMessage))
+            {
+                <div class="alert alert-danger">
+                    @ErrorMessage
+                </div>
+            }
+
+            @if (IsLoading)
+            {
+                <div class="text-center">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            }
+            else if (PayrollResults != null && PayrollResults.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>Employee Name</th>
+                                <th>Position</th>
+                                <th>Employment Type</th>
+                                <th>Hourly Rate</th>
+                                <th>Total Hours</th>
+                                <th>Regular Hours</th>
+                                <th>Overtime Hours</th>
+                                <th>Total Pay</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var result in PayrollResults.OrderBy(r => r.Employee.Name))
+                            {
+                                var overtimeHours = result.Employee.Type == EmployeeType.FullTime && result.HoursWorked > 40 
+                                    ? result.HoursWorked - 40 
+                                    : 0;
+                                var regularHours = result.Employee.Type == EmployeeType.FullTime && result.HoursWorked > 40 
+                                    ? 40 
+                                    : result.HoursWorked;
+
+                                <tr>
+                                    <td>@result.Employee.Name</td>
+                                    <td>@result.Employee.Position.GetDisplayName()</td>
+                                    <td>@result.Employee.Type.GetDisplayName()</td>
+                                    <td>$@result.Employee.HourlyRate.ToString("F2")</td>
+                                    <td>@result.HoursWorked.ToString("F1")</td>
+                                    <td>@regularHours.ToString("F1")</td>
+                                    <td>@overtimeHours.ToString("F1")</td>
+                                    <td>$@result.TotalPay.ToString("F2")</td>
+                                </tr>
+                            }
+                            <tr class="table-info fw-bold">
+                                <td colspan="4">Total</td>
+                                <td>@PayrollResults.Sum(r => r.HoursWorked).ToString("F1")</td>
+                                <td>@PayrollResults.Sum(r => Math.Min(r.HoursWorked, r.Employee.Type == EmployeeType.FullTime ? 40 : r.HoursWorked)).ToString("F1")</td>
+                                <td>@PayrollResults.Sum(r => r.Employee.Type == EmployeeType.FullTime && r.HoursWorked > 40 ? r.HoursWorked - 40 : 0).ToString("F1")</td>
+                                <td>$@PayrollResults.Sum(r => r.TotalPay).ToString("F2")</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else if (PayrollResults != null)
+            {
+                <div class="alert alert-info">
+                    No payroll data found for the selected date range.
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private DateTime StartDate { get; set; } = DateTime.Today.AddDays(-30);
+    private DateTime EndDate { get; set; } = DateTime.Today;
+    private List<PayrollResult> PayrollResults { get; set; }
+    private bool IsLoading { get; set; }
+    private bool IsExporting { get; set; }
+    private string ErrorMessage { get; set; }
+
+    private class PayrollResult
+    {
+        public Employee Employee { get; set; }
+        public double HoursWorked { get; set; }
+        public decimal TotalPay { get; set; }
+    }
+
+    private async Task LoadPayrollData()
+    {
+        try
+        {
+            if (EndDate < StartDate)
+            {
+                ErrorMessage = "End date must be after start date.";
+                return;
+            }
+
+            IsLoading = true;
+            ErrorMessage = null;
+            PayrollResults = null;
+
+            var attendances = await AttendanceService.GetAttendancesByDateRange(StartDate, EndDate);
+            
+            PayrollResults = attendances
+                .GroupBy(a => a.Employee)
+                .Select(g => new PayrollResult
+                {
+                    Employee = g.Key,
+                    HoursWorked = g.Sum(a => a.HoursWorked),
+                    TotalPay = g.Sum(a => (decimal)a.HoursWorked * g.Key.HourlyRate)
+                })
+                .ToList();
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Failed to load payroll data: {ex.Message}";
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private async Task ExportToExcel()
+    {
+        try
+        {
+            if (PayrollResults == null || !PayrollResults.Any())
+            {
+                ErrorMessage = "No data to export.";
+                return;
+            }
+
+            IsExporting = true;
+            ErrorMessage = null;
+
+            var payrollData = PayrollResults.Select(r => new
+            {
+                EmployeeName = r.Employee.Name,
+                Position = r.Employee.Position.GetDisplayName(),
+                EmploymentType = r.Employee.Type.GetDisplayName(),
+                HourlyRate = r.Employee.HourlyRate,
+                TotalHours = r.HoursWorked,
+                RegularHours = r.Employee.Type == EmployeeType.FullTime ? Math.Min(r.HoursWorked, 40) : r.HoursWorked,
+                OvertimeHours = r.Employee.Type == EmployeeType.FullTime ? Math.Max(0, r.HoursWorked - 40) : 0,
+                TotalPay = r.TotalPay
+            }).ToList();
+
+            var excelBytes = PayrollService.GeneratePayrollSummaryExcel(payrollData, StartDate, EndDate);
+
+            var fileName = $"Payroll_Summary_{StartDate:yyyyMMdd}_to_{EndDate:yyyyMMdd}.xlsx";
+            var base64 = Convert.ToBase64String(excelBytes);
+            await JS.InvokeVoidAsync("downloadFileFromBase64", base64, fileName);
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Failed to export payroll: {ex.Message}";
+        }
+        finally
+        {
+            IsExporting = false;
+        }
+    }
+} 
