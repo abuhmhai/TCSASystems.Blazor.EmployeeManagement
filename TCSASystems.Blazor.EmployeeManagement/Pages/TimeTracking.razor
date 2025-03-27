@@ -154,8 +154,11 @@
     {
         try
         {
-            var response = await EmployeeService.GetEmployees();
-            Employees = response.Employees;
+            var response = await EmployeeService.GetAllEmployees();
+            if (response.StatusCode == 200)
+            {
+                Employees = response.Data;
+            }
         }
         catch (DbUpdateException ex)
         {

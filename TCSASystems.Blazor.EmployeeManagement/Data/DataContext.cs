@@ -7,25 +7,77 @@ namespace TCSASystems.Blazor.EmployeeManagement.Data;
 
 public class DataContext : IdentityDbContext
 {
-    public DbSet<Employee> Employees { get; set; }
-    public DbSet<Attendance> Attendances { get; set; }
+    public DataContext(DbContextOptions<DataContext> options) : base(options)
+    {
+    }
 
-    public DataContext(DbContextOptions options) : base(options) { }
+    public DbSet<Employee> Employees { get; set; } = null!;
+    public DbSet<Attendance> Attendances { get; set; } = null!;
+    public DbSet<Payroll> Payrolls { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
-        var employees = GetEmployees();
+        modelBuilder.Entity<Employee>()
+            .HasMany(e => e.Attendances)
+            .WithOne(a => a.Employee)
+            .HasForeignKey(a => a.EmployeeId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Employee>()
+            .HasMany(e => e.Payrolls)
+            .WithOne(p => p.Employee)
+            .HasForeignKey(p => p.EmployeeId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // Seed data
+        var employees = new List<Employee>
+        {
+            new Employee
+            {
+                Id = 1,
+                Name = "John Doe",
+                ImgUrl = "https://example.com/john.jpg",
+                Salary = 100000,
+                HourlyRate = 50,
+                Type = EmployeeType.FullTime,
+                Position = Position.SoftwareEngineer
+            },
+            new Employee
+            {
+                Id = 2,
+                Name = "Jane Smith",
+                ImgUrl = "https://example.com/jane.jpg",
+                Salary = 90000,
+                HourlyRate = 45,
+                Type = EmployeeType.FullTime,
+                Position = Position.DataAnalyst
+            }
+        };
+
+        var attendances = new List<Attendance>
+        {
+            new Attendance
+            {
+                Id = 1,
+                EmployeeId = 1,
+                Date = DateTime.Today,
+                CheckIn = new TimeOnly(9, 0),
+                CheckOut = new TimeOnly(17, 0)
+            },
+            new Attendance
+            {
+                Id = 2,
+                EmployeeId = 2,
+                Date = DateTime.Today,
+                CheckIn = new TimeOnly(9, 0),
+                CheckOut = new TimeOnly(17, 0)
+            }
+        };
+
         modelBuilder.Entity<Employee>().HasData(employees);
-
-        var attendances = GetAttendances(employees);
         modelBuilder.Entity<Attendance>().HasData(attendances);
-
-        modelBuilder.Entity<Attendance>()
-            .HasOne(a => a.Employee)
-            .WithMany()
-            .HasForeignKey(a => a.EmployeeId);
     }
 
     private List<Employee> GetEmployees()
@@ -52,48 +104,20 @@ public class DataContext : IdentityDbContext
         return employees;
     }
 
-    private List<Attendance> GetAttendances(List<Employee> employees)
-    {
-        var attendances = new List<Attendance>();
-        var random = new Random();
-
-        foreach (var employee in employees)
-        {
-            for (int i = 0; i < 20; i++)
-            {
-                DateTime date = DateTime.Today.AddDays(-random.Next(30));
-                TimeOnly checkIn = new TimeOnly(random.Next(7, 10), random.Next(0, 60));
-                TimeOnly? checkOut = new TimeOnly(random.Next(16, 19), random.Next(0, 60));
-
-                attendances.Add(new Attendance
-                {
-                    Id = attendances.Count + 1,
-                    EmployeeId = employee.Id,
-                    Date = date,
-                    CheckIn = checkIn,
-                    CheckOut = checkOut
-                    // Remove HoursWorked and IsLate assignments since they're computed
-                });
-            }
-        }
-
-        return attendances;
-    }
-
     private decimal GetRandomSalary(Random random)
     {
-        return random.Next(30000, 100000);
+        return random.Next(30000, 150000);
     }
 
     private EmployeeType GetRandomEmployeeType(Random random)
     {
         var types = Enum.GetValues(typeof(EmployeeType));
-        return (EmployeeType)types.GetValue(random.Next(types.Length));
+        return (EmployeeType)types.GetValue(random.Next(types.Length))!;
     }
 
     private Position GetRandomPosition(Random random)
     {
         var positions = Enum.GetValues(typeof(Position));
-        return (Position)positions.GetValue(random.Next(positions.Length));
+        return (Position)positions.GetValue(random.Next(positions.Length))!;
     }
 }

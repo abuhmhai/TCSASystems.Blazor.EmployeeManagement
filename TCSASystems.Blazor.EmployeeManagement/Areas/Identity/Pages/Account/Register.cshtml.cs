@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using System.ComponentModel.DataAnnotations;
 
 namespace TCSASystems.Blazor.EmployeeManagement.Areas.Identity.Pages.Account;
 
@@ -8,30 +9,68 @@ public class RegisterModel : PageModel
 {
     private readonly SignInManager<IdentityUser> _signInManager;
     private readonly UserManager<IdentityUser> _userManager;
+    private readonly ILogger<RegisterModel> _logger;
 
-    public RegisterModel(SignInManager<IdentityUser> signInManager, UserManager<IdentityUser> userManager)
+    public RegisterModel(
+        UserManager<IdentityUser> userManager,
+        SignInManager<IdentityUser> signInManager,
+        ILogger<RegisterModel> logger)
     {
-        _signInManager = signInManager;
         _userManager = userManager;
+        _signInManager = signInManager;
+        _logger = logger;
     }
 
     [BindProperty]
-    public InputModel Input { get; set; }
+    public required InputModel Input { get; set; }
 
-    public async Task<IActionResult> OnPostAsync()
+    public string? ReturnUrl { get; set; }
+
+    public class InputModel
     {
+        [Required]
+        [EmailAddress]
+        public required string Email { get; set; }
+
+        [Required]
+        [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
+        [DataType(DataType.Password)]
+        public required string Password { get; set; }
+
+        [DataType(DataType.Password)]
+        [Display(Name = "Confirm password")]
+        [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
+        public required string ConfirmPassword { get; set; }
+    }
+
+    public void OnGet(string? returnUrl = null)
+    {
+        ReturnUrl = returnUrl;
+    }
+
+    public async Task<IActionResult> OnPostAsync(string? returnUrl = null)
+    {
+        returnUrl ??= Url.Content("~/");
+
         if (ModelState.IsValid)
         {
-            var identity = new IdentityUser { UserName = Input.Email, Email = Input.Email };
-            var result = await _userManager.CreateAsync(identity, Input.Password);
+            var user = new IdentityUser { UserName = Input.Email, Email = Input.Email };
+            var result = await _userManager.CreateAsync(user, Input.Password);
 
             if (result.Succeeded)
             {
-                await _signInManager.SignInAsync(identity, isPersistent: false);
-                return LocalRedirect("~/");
+                _logger.LogInformation("User created a new account with password.");
+
+                await _signInManager.SignInAsync(user, isPersistent: false);
+                return LocalRedirect(returnUrl);
+            }
+            foreach (var error in result.Errors)
+            {
+                ModelState.AddModelError(string.Empty, error.Description);
             }
         }
 
+        // If we got this far, something failed, redisplay form
         return Page();
     }
 }

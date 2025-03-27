@@ -1,174 +1,51 @@
-﻿using Microsoft.EntityFrameworkCore;
-using TCSASystems.Blazor.EmployeeManagement.Data;
+﻿using System.Net.Http.Json;
 using TCSASystems.Blazor.EmployeeManagement.Models;
-using TCSASystems.Blazor.EmployeeManagement.Models.DTOs;
 using TCSASystems.Blazor.EmployeeManagement.Models.Responses;
 
 namespace TCSASystems.Blazor.EmployeeManagement.Services;
 
-public interface IEmployeeService
+public class EmployeeService : IEmployeeService
 {
-    Task<GetEmployeesResponse> GetEmployees();
-    Task<BaseResponse> AddEmployee(AddEmployeeForm form);
-    Task<GetEmployeeResponse> GetEmployee(int id);
-    Task<BaseResponse> DeleteEmployee(Employee employee);
-    Task<BaseResponse> EditEmployee(Employee employee);
-}
+    private readonly HttpClient _httpClient;
+    private readonly string _baseUrl = "api/employees/";
 
-public class EmployeeService: IEmployeeService
-{
-    private readonly IDbContextFactory<DataContext> _factory;
-
-    public EmployeeService(IDbContextFactory<DataContext> factory)
+    public EmployeeService(HttpClient httpClient)
     {
-        _factory = factory;
-    }
-    public async Task<GetEmployeesResponse> GetEmployees()
-    {
-        var response = new GetEmployeesResponse();
-        try
-        {
-            using (var context = _factory.CreateDbContext())
-            {
-                var employees = context.Employees.ToList();
-                response.StatusCode = 200;
-                response.Message = "Success";
-                response.Employees = employees;
-            }
-        }
-        catch (Exception ex)
-        {
-            response.StatusCode = 500;
-            response.Message = "Error retrieving employees: " + ex.Message;
-            response.Employees = null;
-        }
-
-        return response;
-    }
-    public async Task<BaseResponse> AddEmployee(AddEmployeeForm form)
-    {
-        var response = new BaseResponse();
-        try
-        {
-            using (var context = _factory.CreateDbContext())
-            {
-                context.Add(new Employee
-                {
-                    Name = form.Name,
-                    Position = form.Position,
-                    Salary = form.Salary,
-                    Type = form.Type,
-                    ImgUrl = form.ImgUrl
-                });
-
-                var result = await context.SaveChangesAsync();
-
-                if (result == 1)
-                {
-                    response.StatusCode = 200;
-                    response.Message = "Employee added successfully";
-                }
-                else
-                {
-                    response.StatusCode = 400;
-                    response.Message = "Error occurred while adding the employee.";
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            response.StatusCode = 500;
-            response.Message = "Error adding employee: " + ex.Message;
-        }
-
-        return response;
+        _httpClient = httpClient;
     }
 
-    public async Task<GetEmployeeResponse> GetEmployee(int id)
+    public async Task<ServiceResponse<Employee>> AddEmployee(Employee employee)
     {
-        var response = new GetEmployeeResponse();
-
-        try
-        {
-            using (var context = _factory.CreateDbContext())
-            {
-                var employee = await context.Employees.FirstOrDefaultAsync(x => x.Id == id);
-                response.StatusCode = 200;
-                response.Message = "Success";
-                response.Employee = employee;
-            }
-        }
-        catch (Exception ex)
-        {
-            response.StatusCode = 500;
-            response.Message = "Error retrieving employees: " + ex.Message;
-            response.Employee = null;
-        }
-
-        return response;
+        var response = await _httpClient.PostAsJsonAsync(_baseUrl, employee);
+        return await response.Content.ReadFromJsonAsync<ServiceResponse<Employee>>() 
+            ?? new ServiceResponse<Employee> { StatusCode = 500, Message = "Failed to add employee" };
     }
 
-    public async Task<BaseResponse> DeleteEmployee(Employee employee)
+    public async Task<ServiceResponse<List<Employee>>> GetAllEmployees()
     {
-        var response = new BaseResponse();
-        try
-        {
-            using (var context = _factory.CreateDbContext())
-            {
-                context.Remove(employee);
-
-                var result = await context.SaveChangesAsync();
-
-                if (result == 1)
-                {
-                    response.StatusCode = 200;
-                    response.Message = "Employee deleted successfully";
-                }
-                else
-                {
-                    response.StatusCode = 400;
-                    response.Message = "Error occurred while deleting the employee.";
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            response.StatusCode = 500;
-            response.Message = "Error deleting employee: " + ex.Message;
-        }
-
-        return response;
+        var response = await _httpClient.GetAsync(_baseUrl);
+        return await response.Content.ReadFromJsonAsync<ServiceResponse<List<Employee>>>() 
+            ?? new ServiceResponse<List<Employee>> { StatusCode = 500, Message = "Failed to get employees" };
     }
 
-    public async Task<BaseResponse> EditEmployee(Employee employee)
+    public async Task<ServiceResponse<Employee>> GetEmployeeById(int id)
     {
-        var response = new BaseResponse();
-        try
-        {
-            using (var context = _factory.CreateDbContext())
-            {
-                context.Update(employee);
+        var response = await _httpClient.GetAsync($"{_baseUrl}{id}");
+        return await response.Content.ReadFromJsonAsync<ServiceResponse<Employee>>() 
+            ?? new ServiceResponse<Employee> { StatusCode = 404, Message = "Failed to get employee" };
+    }
 
-                var result = await context.SaveChangesAsync();
+    public async Task<ServiceResponse<Employee>> UpdateEmployee(Employee employee)
+    {
+        var response = await _httpClient.PutAsJsonAsync($"{_baseUrl}{employee.Id}", employee);
+        return await response.Content.ReadFromJsonAsync<ServiceResponse<Employee>>() 
+            ?? new ServiceResponse<Employee> { StatusCode = 500, Message = "Failed to update employee" };
+    }
 
-                if (result == 1)
-                {
-                    response.StatusCode = 200;
-                    response.Message = "Employee updated successfully";
-                }
-                else
-                {
-                    response.StatusCode = 400;
-                    response.Message = "Error occurred while updating the employee.";
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            response.StatusCode = 500;
-            response.Message = "Error updating employee: " + ex.Message;
-        }
-
-        return response;
+    public async Task<ServiceResponse<bool>> DeleteEmployee(int id)
+    {
+        var response = await _httpClient.DeleteAsync($"{_baseUrl}{id}");
+        return await response.Content.ReadFromJsonAsync<ServiceResponse<bool>>() 
+            ?? new ServiceResponse<bool> { StatusCode = 500, Message = "Failed to delete employee" };
     }
 }

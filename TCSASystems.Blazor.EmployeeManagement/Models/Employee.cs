@@ -6,70 +6,69 @@ namespace TCSASystems.Blazor.EmployeeManagement.Models;
 public class Employee
 {
     public int Id { get; set; }
-    public string Name { get; set; }
-    public string ImgUrl { get; set; }
+
+    [Required]
+    public required string Name { get; set; }
+
+    public string? ImgUrl { get; set; }
+
     public decimal? Salary { get; set; }
-    public decimal HourlyRate { get; set; }
+
+    public decimal? HourlyRate { get; set; }
+
+    [Required]
     public EmployeeType Type { get; set; }
+
+    [Required]
     public Position Position { get; set; }
+
+    public virtual ICollection<Attendance> Attendances { get; set; } = new List<Attendance>();
+    public virtual ICollection<Payroll> Payrolls { get; set; } = new List<Payroll>();
 }
 
 public enum EmployeeType
 {
-    [Display(Name = "Freelance")]
-    Freelance,
-
-    [Display(Name = "Casual")]
-    Casual,
-
-    [Display(Name = "Part Time")]
+    FullTime,
     PartTime,
-
-    [Display(Name = "Full Time")]
-    FullTime
+    Casual,
+    Freelance
 }
 
 public enum Position
 {
-    [Display(Name = "CEO")]
     CEO,
-
-    [Display(Name = "CFO")]
     CFO,
-
-    [Display(Name = "CTO")]
     CTO,
-
-    [Display(Name = "Accountant")]
-    Accountant,
-
-    [Display(Name = "HR Manager")]
-    HRManager,
-
-    [Display(Name = "Marketing Manager")]
-    MarketingManager,
-
-    [Display(Name = "Sales Manager")]
-    SalesManager,
-
-    [Display(Name = "Software Engineer")]
     SoftwareEngineer,
-
-    [Display(Name = "Data Analyst")]
     DataAnalyst,
-
-    [Display(Name = "Customer Support")]
-    CustomerSupport
+    ProjectManager,
+    HRManager,
+    AccountManager,
+    MarketingManager,
+    SalesRepresentative,
+    CustomerServiceRepresentative,
+    Other
 }
 
-public static class EnumExtensions
+public static class PositionExtensions
 {
-    public static string GetDisplayName(this Enum enumValue)
+    public static string GetDisplayName(this Position position)
     {
-        return enumValue.GetType()
-          .GetMember(enumValue.ToString())
-          .First()
-          .GetCustomAttribute<DisplayAttribute>()
-          ?.GetName();
+        return position switch
+        {
+            Position.CEO => "Chief Executive Officer",
+            Position.CFO => "Chief Financial Officer",
+            Position.CTO => "Chief Technology Officer",
+            Position.SoftwareEngineer => "Software Engineer",
+            Position.DataAnalyst => "Data Analyst",
+            Position.ProjectManager => "Project Manager",
+            Position.HRManager => "HR Manager",
+            Position.AccountManager => "Account Manager",
+            Position.MarketingManager => "Marketing Manager",
+            Position.SalesRepresentative => "Sales Representative",
+            Position.CustomerServiceRepresentative => "Customer Service Representative",
+            Position.Other => "Other",
+            _ => position.ToString()
+        };
     }
 }

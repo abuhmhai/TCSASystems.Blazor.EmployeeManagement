@@ -1,73 +1,104 @@
 ﻿@page "/add-employee"
-@using TCSASystems.Blazor.EmployeeManagement.Models.DTOs
-@using static TCSASystems.Blazor.EmployeeManagement.Components.Warning;
+@using TCSASystems.Blazor.EmployeeManagement.Models
+@using TCSASystems.Blazor.EmployeeManagement.Services
+@inject IEmployeeService EmployeeService
+@inject NavigationManager NavigationManager
 
-@if (ShowWarning)
-{
-    <Warning OnClickCallback="DismissWarning" Type=@Warning_Type Message="@Warning_Message" />
-}
-else
-{
-    <Card>
-        <div class="row user-detail-row">
-            <h3>Add New Employee</h3>
-            <div class="form-group">
-                <EditForm Model="@addEmployeeForm" OnValidSubmit="AddNewEmployee">
-                    <DataAnnotationsValidator />
-                    <ValidationSummary />
-                    <p>
+<PageTitle>Add Employee</PageTitle>
+
+<div class="container mt-4">
+    <h3>Add Employee</h3>
+
+    @if (ShowWarning)
+    {
+        <div class="alert @(Warning_Type == WarningType.Success ? "alert-success" : "alert-danger") alert-dismissible fade show" role="alert">
+            @Warning_Message
+            <button type="button" class="btn-close" @onclick="DismissWarning"></button>
+        </div>
+    }
+
+    <EditForm Model="@addEmployeeForm" OnValidSubmit="AddNewEmployee">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="card">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
                         <div class="form-floating mb-3">
                             <InputText class="form-control" id="floatingInput" placeholder="Name here" @bind-Value="addEmployeeForm.Name" />
                             <label for="floatingInput">Name</label>
+                            <ValidationMessage For="@(() => addEmployeeForm.Name)" />
                         </div>
+
                         <div class="form-floating mb-3">
-                            <InputNumber class="form-control" id="floatingInput" placeholder="Salary here" @bind-Value="addEmployeeForm.Salary" />
-                            <label for="floatingInput">Salary</label>
-                        </div>
-                        <div class="form-floating mb-3">
-                            <InputNumber class="form-control" id="floatingInput" placeholder="Hourly Rate here" @bind-Value="addEmployeeForm.HourlyRate" />
-                            <label for="floatingInput">Hourly Rate</label>
-                        </div>
-                        <div class="form-floating mb-3">
-                            <InputSelect shadow rounded id="floatingInput" placeholder="Employee here" @bind-Value="addEmployeeForm.Type" class="form-select">
+                            <InputSelect class="form-select" id="floatingInput" @bind-Value="addEmployeeForm.Type" @bind-Value:event="oninput" @onchange="UpdateHourlyRate">
                                 @foreach (EmployeeType type in Enum.GetValues(typeof(EmployeeType)))
                                 {
                                     <option value="@type">@type.GetDisplayName()</option>
                                 }
                             </InputSelect>
                             <label for="floatingInput">Employment Type</label>
+                            <ValidationMessage For="@(() => addEmployeeForm.Type)" />
                         </div>
+
                         <div class="form-floating mb-3">
-                            <InputSelect shadow rounded id="floatingInput" placeholder="Position here" @bind-Value="addEmployeeForm.Position" class="form-select">
+                            <InputSelect class="form-select" id="floatingInput" @bind-Value="addEmployeeForm.Position" @bind-Value:event="oninput" @onchange="UpdateHourlyRate">
                                 @foreach (Position position in Enum.GetValues(typeof(Position)))
                                 {
                                     <option value="@position">@position.GetDisplayName()</option>
                                 }
                             </InputSelect>
                             <label for="floatingInput">Position</label>
+                            <ValidationMessage For="@(() => addEmployeeForm.Position)" />
                         </div>
+                    </div>
+
+                    <div class="col-md-6">
                         <div class="form-floating mb-3">
-                            <InputText class="form-control" id="floatingInput" placeholder="Img here" @bind-Value="addEmployeeForm.ImgUrl" />
-                            <label for="floatingInput">Image Url</label>
+                            <InputNumber class="form-control" id="floatingInput" placeholder="Hourly Rate here" @bind-Value="addEmployeeForm.HourlyRate" />
+                            <label for="floatingInput">Hourly Rate (Recommended: @GetRecommendedRate)</label>
+                            <ValidationMessage For="@(() => addEmployeeForm.HourlyRate)" />
                         </div>
-                    </p>
-                    <button class="btn btn-outline-secondary" type="submit">Submit</button>
-                </EditForm>
+
+                        <div class="form-floating mb-3">
+                            <InputNumber class="form-control" id="floatingInput" placeholder="Salary here" @bind-Value="addEmployeeForm.Salary" />
+                            <label for="floatingInput">Salary (Optional)</label>
+                            <ValidationMessage For="@(() => addEmployeeForm.Salary)" />
+                        </div>
+
+                        <div class="form-floating mb-3">
+                            <InputText class="form-control" id="floatingInput" placeholder="Image URL here" @bind-Value="addEmployeeForm.ImgUrl" />
+                            <label for="floatingInput">Image URL (Optional)</label>
+                            <ValidationMessage For="@(() => addEmployeeForm.ImgUrl)" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mt-3">
+                    <div class="col">
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                        <button type="button" class="btn btn-secondary ms-2" @onclick="@(() => NavigationManager.NavigateTo("/"))">Cancel</button>
+                    </div>
+                </div>
             </div>
         </div>
-    </Card>
-}
-
+    </EditForm>
+</div>
 
 @code {
-    [Inject] private IEmployeeService EmployeeService { get; set; }
-    [Inject] private NavigationManager NavigationManager { get; set; }
-
     private bool ShowWarning = false;
     private string Warning_Message = "";
     private WarningType Warning_Type;
 
     private AddEmployeeForm addEmployeeForm = new();
+
+    private decimal GetRecommendedRate => EmployeeHourlyRate.GetRecommendedRate(addEmployeeForm.Type, addEmployeeForm.Position);
+
+    private void UpdateHourlyRate()
+    {
+        addEmployeeForm.HourlyRate = GetRecommendedRate;
+    }
 
     private async Task AddNewEmployee()
     {
@@ -75,11 +106,16 @@ else
         Warning_Type = response.StatusCode == 200 ? WarningType.Success : WarningType.Error;
         Warning_Message = response.Message;
         ShowWarning = true;
+
+        if (response.StatusCode == 200)
+        {
+            await Task.Delay(2000); // Show success message for 2 seconds
+            NavigationManager.NavigateTo("/");
+        }
     }
 
     private void DismissWarning()
     {
         ShowWarning = false;
-        NavigationManager.NavigateTo($"/");
     }
 }
