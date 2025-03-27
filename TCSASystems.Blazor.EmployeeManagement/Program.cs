@@ -10,9 +10,21 @@ builder.Services.AddServerSideBlazor();
 
 builder.Services.AddScoped<IEmployeeService, EmployeeService>();
 builder.Services.AddScoped<IAttendanceService, AttendanceService>();
+builder.Services.AddScoped<IPayrollService, PayrollService>();
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContextFactory<DataContext>(options =>
-    options.UseMySql(connectionString, new MySqlServerVersion(new Version(8, 0, 36))));
+{
+    options.UseMySql(connectionString, new MySqlServerVersion(new Version(8, 0, 36)), mysqlOptions =>
+    {
+        mysqlOptions.EnableRetryOnFailure(
+            maxRetryCount: 5,
+            maxRetryDelay: TimeSpan.FromSeconds(10),
+            errorNumbersToAdd: null);
+        
+        // Add connection timeout
+        mysqlOptions.CommandTimeout(30);
+    });
+});
 builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
 {
     options.Password.RequireDigit = false;
@@ -29,7 +41,17 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<DataContext>();
-    dbContext.Database.EnsureCreated();
+    try
+    {
+        // Drop and recreate the database
+        dbContext.Database.EnsureDeleted();
+        dbContext.Database.EnsureCreated();
+    }
+    catch (Exception ex)
+    {
+        // Log the error but continue with the application
+        Console.WriteLine($"Error initializing database: {ex.Message}");
+    }
 }
 
 // Configure the HTTP request pipeline.

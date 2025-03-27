@@ -44,97 +44,264 @@
     }
     else
     {
-        <div class="card">
-            <div class="card-body">
-                <form @onsubmit:preventDefault>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="employee" class="form-label">Select Employee:</label>
-                            <select id="employee" class="form-select" @bind="SelectedEmployeeId">
-                                <option value="0">Select an employee...</option>
-                                @foreach (var employee in Employees)
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="calendar-container">
+                            <div class="calendar-header d-flex justify-content-between align-items-center mb-3">
+                                <button class="btn btn-outline-primary" @onclick="PreviousMonth">
+                                    <i class="bi bi-chevron-left"></i>
+                                </button>
+                                <h4 class="mb-0">@CurrentMonth.ToString("MMMM yyyy")</h4>
+                                <button class="btn btn-outline-primary" @onclick="NextMonth">
+                                    <i class="bi bi-chevron-right"></i>
+                                </button>
+                            </div>
+                            <div class="calendar-grid">
+                                <div class="calendar-weekdays">
+                                    @foreach (var day in WeekDays)
+                                    {
+                                        <div class="calendar-weekday">@day</div>
+                                    }
+                                </div>
+                                <div class="calendar-days">
+                                    @foreach (var day in CalendarDays)
+                                    {
+                                        var isToday = day.Date.Date == DateTime.Today.Date;
+                                        var attendance = RecentAttendances?.FirstOrDefault(a => a.Date.Date == day.Date.Date);
+                                        var hasAttendance = attendance != null;
+                                        var isSelected = SelectedDate?.Date == day.Date.Date;
+                                        var isCurrentMonth = day.Date.Month == CurrentMonth.Month;
+                                        var isLate = attendance?.IsLate ?? false;
+                                        
+                                        <div class="calendar-day @(isToday ? "today" : "") @(hasAttendance ? isLate ? "late-attendance" : "on-time-attendance" : "") @(isSelected ? "selected" : "") @(!isCurrentMonth ? "other-month" : "")"
+                                             @onclick="() => SelectDate(day.Date)">
+                                            <div class="day-number">@day.Date.Day</div>
+                                            @if (hasAttendance)
+                                            {
+                                                <div class="attendance-indicator">
+                                                    <i class="bi @(isLate ? "bi-exclamation-circle-fill text-warning" : "bi-check-circle-fill text-success")"></i>
+                                                </div>
+                                            }
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Record Attendance</h5>
+                        <form @onsubmit:preventDefault>
+                            <div class="mb-3">
+                                <label class="form-label">Select Employee:</label>
+                                <select class="form-select" @bind="SelectedEmployeeId">
+                                    <option value="0">Select an employee...</option>
+                                    @foreach (var employee in Employees)
+                                    {
+                                        <option value="@employee.Id">@employee.Name</option>
+                                    }
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Selected Date:</label>
+                                <input type="date" class="form-control" @bind="DateValue" readonly />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Check In Time:</label>
+                                <input type="time" class="form-control" @bind="CheckInValue" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Check Out Time (Optional):</label>
+                                <input type="time" class="form-control" @bind="CheckOutValue" />
+                            </div>
+
+                            <button type="submit" class="btn btn-primary w-100" @onclick="SaveAttendance" disabled="@IsSaving">
+                                @if (IsSaving)
                                 {
-                                    <option value="@employee.Id">@employee.Name (@employee.Position.GetDisplayName())</option>
+                                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
                                 }
-                            </select>
-                        </div>
+                                Save Attendance
+                            </button>
+                        </form>
+                    </div>
+                </div>
 
-                        <div class="col-md-6 mb-3">
-                            <label for="date" class="form-label">Date:</label>
-                            <input type="date" id="date" class="form-control" @bind="DateValue" max="@DateTime.Today.ToString("yyyy-MM-dd")" />
-                        </div>
-
-                        <div class="col-md-6 mb-3">
-                            <label for="checkin" class="form-label">Check In Time:</label>
-                            <input type="time" id="checkin" class="form-control" @bind="CheckInValue" />
-                        </div>
-
-                        <div class="col-md-6 mb-3">
-                            <label for="checkout" class="form-label">Check Out Time (Optional):</label>
-                            <input type="time" id="checkout" class="form-control" @bind="CheckOutValue" />
+                @if (RecentAttendances?.Any() == true)
+                {
+                    <div class="card mt-3">
+                        <div class="card-body">
+                            <h5 class="card-title">Recent Records</h5>
+                            <div class="list-group">
+                                @foreach (var attendance in RecentAttendances.OrderByDescending(a => a.Date).Take(5))
+                                {
+                                    <div class="list-group-item">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <strong>@attendance.Date.ToString("MMM dd")</strong>
+                                                <br />
+                                                <small>@attendance.CheckIn.ToString("HH:mm") - @(attendance.CheckOut?.ToString("HH:mm") ?? "-")</small>
+                                            </div>
+                                            <span class="badge @(attendance.IsLate ? "bg-warning" : "bg-success")">
+                                                @(attendance.IsLate ? "Late" : "On Time")
+                                            </span>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
                         </div>
                     </div>
-
-                    <div class="d-flex justify-content-between align-items-center">
-                        <button type="submit" class="btn btn-primary" @onclick="SaveAttendance" disabled="@IsSaving">
-                            @if (IsSaving)
-                            {
-                                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                            }
-                            Save Attendance
-                        </button>
-                        <button type="button" class="btn btn-secondary" @onclick="ResetForm">Reset Form</button>
-                    </div>
-                </form>
+                }
             </div>
         </div>
-
-        @if (RecentAttendances?.Any() == true)
-        {
-            <div class="card mt-4">
-                <div class="card-header">
-                    <h5 class="mb-0">Recent Attendance Records</h5>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-striped">
-                            <thead>
-                                <tr>
-                                    <th>Date</th>
-                                    <th>Check In</th>
-                                    <th>Check Out</th>
-                                    <th>Hours Worked</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var attendance in RecentAttendances)
-                                {
-                                    <tr>
-                                        <td>@attendance.Date.ToString("yyyy-MM-dd")</td>
-                                        <td>@attendance.CheckIn.ToString("HH:mm")</td>
-                                        <td>@(attendance.CheckOut?.ToString("HH:mm") ?? "-")</td>
-                                        <td>@attendance.HoursWorked.ToString("F2")</td>
-                                        <td>
-                                            @if (attendance.IsLate)
-                                            {
-                                                <span class="badge bg-warning">Late</span>
-                                            }
-                                            else
-                                            {
-                                                <span class="badge bg-success">On Time</span>
-                                            }
-                                        </td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        }
     }
 </div>
+
+<style>
+    .calendar-container {
+        background: white;
+        border-radius: 1rem;
+        padding: 1rem;
+    }
+
+    .calendar-header {
+        margin-bottom: 1rem;
+    }
+
+    .calendar-grid {
+        display: grid;
+        gap: 0.5rem;
+    }
+
+    .calendar-weekdays {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .calendar-weekday {
+        text-align: center;
+        font-weight: 600;
+        color: #6c757d;
+        padding: 0.5rem;
+    }
+
+    .calendar-days {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 0.5rem;
+    }
+
+    .calendar-day {
+        aspect-ratio: 1;
+        border: 1px solid #dee2e6;
+        border-radius: 0.5rem;
+        padding: 0.5rem;
+        cursor: pointer;
+        position: relative;
+        transition: all 0.2s ease;
+    }
+
+    .calendar-day:hover {
+        background-color: #f8f9fa;
+    }
+
+    .calendar-day.today {
+        background-color: #e3f2fd;
+    }
+
+    .calendar-day.selected {
+        background-color: #cce5ff;
+        border-color: #0d6efd;
+    }
+
+    .calendar-day.has-attendance {
+        border-color: #198754;
+    }
+
+    .calendar-day.other-month {
+        color: #adb5bd;
+    }
+
+    .day-number {
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+
+    .attendance-indicator {
+        position: absolute;
+        bottom: 0.25rem;
+        right: 0.25rem;
+        font-size: 0.8rem;
+    }
+
+    .card {
+        border-radius: 1rem;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    }
+
+    .form-select, .form-control {
+        border-radius: 0.5rem;
+        border: 1px solid #ced4da;
+    }
+
+    .form-select:focus, .form-control:focus {
+        border-color: #80bdff;
+        box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+    }
+
+    .btn {
+        border-radius: 0.5rem;
+        padding: 0.5rem 1.5rem;
+    }
+
+    .list-group-item {
+        border-radius: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .calendar-day.late-attendance {
+        background-color: rgba(255, 193, 7, 0.1);
+        border-color: #ffc107;
+    }
+
+    .calendar-day.on-time-attendance {
+        background-color: rgba(25, 135, 84, 0.1);
+        border-color: #198754;
+    }
+
+    .calendar-day.late-attendance:hover {
+        background-color: rgba(255, 193, 7, 0.2);
+    }
+
+    .calendar-day.on-time-attendance:hover {
+        background-color: rgba(25, 135, 84, 0.2);
+    }
+
+    .calendar-day.selected.late-attendance {
+        background-color: rgba(255, 193, 7, 0.3);
+    }
+
+    .calendar-day.selected.on-time-attendance {
+        background-color: rgba(25, 135, 84, 0.3);
+    }
+
+    .calendar-day.today.late-attendance {
+        background-color: rgba(255, 193, 7, 0.2);
+    }
+
+    .calendar-day.today.on-time-attendance {
+        background-color: rgba(25, 135, 84, 0.2);
+    }
+</style>
 
 @code {
     private List<Employee>? Employees { get; set; }
@@ -150,12 +317,38 @@
     private TimeOnly? CheckInValue { get; set; }
     private TimeOnly? CheckOutValue { get; set; }
 
+    private DateTime CurrentMonth { get; set; } = DateTime.Today;
+    private DateTime? SelectedDate { get; set; }
+
+    private readonly string[] WeekDays = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
+
+    private List<DateTime> CalendarDays
+    {
+        get
+        {
+            var firstDayOfMonth = new DateTime(CurrentMonth.Year, CurrentMonth.Month, 1);
+            var lastDayOfMonth = firstDayOfMonth.AddMonths(1).AddDays(-1);
+            var firstDayOfCalendar = firstDayOfMonth.AddDays(-(int)firstDayOfMonth.DayOfWeek);
+            var lastDayOfCalendar = lastDayOfMonth.AddDays(6 - (int)lastDayOfMonth.DayOfWeek);
+
+            var days = new List<DateTime>();
+            for (var date = firstDayOfCalendar; date <= lastDayOfCalendar; date = date.AddDays(1))
+            {
+                days.Add(date);
+            }
+
+            return days;
+        }
+    }
+
     protected override async Task OnInitializedAsync()
     {
         try
         {
             var response = await EmployeeService.GetEmployees();
             Employees = response.Employees;
+            SelectedDate = DateTime.Today;
+            DateValue = DateTime.Today;
         }
         catch (DbUpdateException ex)
         {
@@ -167,6 +360,24 @@
             ErrorMessage = "Failed to load employees.";
             DebugMessage = ex.Message;
         }
+    }
+
+    private void PreviousMonth()
+    {
+        CurrentMonth = CurrentMonth.AddMonths(-1);
+    }
+
+    private void NextMonth()
+    {
+        CurrentMonth = CurrentMonth.AddMonths(1);
+    }
+
+    private void SelectDate(DateTime date)
+    {
+        SelectedDate = date;
+        DateValue = date;
+        CheckInValue = null;
+        CheckOutValue = null;
     }
 
     private async Task SaveAttendance()
@@ -198,47 +409,62 @@
                 return;
             }
 
+            // Validate check-out time if provided
             if (CheckOutValue.HasValue && CheckOutValue.Value <= CheckInValue.Value)
             {
                 ErrorMessage = "Check-out time must be after check-in time.";
                 return;
             }
 
-            NewAttendance.EmployeeId = SelectedEmployeeId;
-            NewAttendance.Date = DateValue.Value;
-            NewAttendance.CheckIn = CheckInValue.Value;
-            NewAttendance.CheckOut = CheckOutValue;
+            var attendance = new Attendance
+            {
+                EmployeeId = SelectedEmployeeId,
+                Date = DateValue.Value.Date,
+                CheckIn = CheckInValue.Value,
+                CheckOut = CheckOutValue
+            };
 
-            DebugMessage = $"Attempting to save attendance for Employee {SelectedEmployeeId} on {DateValue.Value:yyyy-MM-dd}";
+            await AttendanceService.AddAttendance(attendance);
             
-            await AttendanceService.AddAttendance(NewAttendance);
+            // Refresh the recent attendances list
+            if (SelectedEmployeeId > 0)
+            {
+                RecentAttendances = await AttendanceService.GetAttendancesByEmployeeId(SelectedEmployeeId);
+            }
 
-            SuccessMessage = "Attendance record saved successfully!";
+            var employee = Employees?.FirstOrDefault(e => e.Id == SelectedEmployeeId);
+            var action = "saved";
             
-            // Load recent attendance records
-            RecentAttendances = await AttendanceService.GetAttendancesByEmployeeId(SelectedEmployeeId);
+            // Check if this was an update
+            var existingRecord = RecentAttendances?.FirstOrDefault(a => 
+                a.Date.Date == DateValue.Value.Date && 
+                a.EmployeeId == SelectedEmployeeId);
             
-            // Reset form
+            if (existingRecord != null)
+            {
+                action = "updated";
+            }
+
+            SuccessMessage = $"Attendance record {action} successfully for {employee?.Name}.";
             ResetForm();
         }
         catch (InvalidOperationException ex)
         {
             ErrorMessage = ex.Message;
-            DebugMessage = $"Validation Error: {ex.Message}";
-        }
-        catch (DbUpdateException ex)
-        {
-            ErrorMessage = "Database error occurred while saving attendance.";
-            DebugMessage = $"Database Error: {ex.Message}\nInner Exception: {ex.InnerException?.Message}";
+            if (ex.InnerException != null)
+            {
+                DebugMessage = ex.InnerException.Message;
+            }
         }
         catch (Exception ex)
         {
             ErrorMessage = "An unexpected error occurred while saving the attendance record.";
-            DebugMessage = $"Unexpected Error: {ex.Message}";
+            DebugMessage = ex.Message;
         }
         finally
         {
             IsSaving = false;
+            StateHasChanged();
         }
     }
 
@@ -246,7 +472,6 @@
     {
         NewAttendance = new Attendance();
         SelectedEmployeeId = 0;
-        DateValue = null;
         CheckInValue = null;
         CheckOutValue = null;
     }

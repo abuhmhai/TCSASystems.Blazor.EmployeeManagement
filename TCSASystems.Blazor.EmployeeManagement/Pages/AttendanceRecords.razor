@@ -1,0 +1,237 @@
+@page "/attendance-records"
+@using TCSASystems.Blazor.EmployeeManagement.Models
+@inject IAttendanceService AttendanceService
+@inject IEmployeeService EmployeeService
+
+<div class="container mt-4">
+    <h3 class="mb-4">Attendance Records</h3>
+
+    @if (ErrorMessage != null)
+    {
+        <div class="alert alert-danger">
+            @ErrorMessage
+        </div>
+    }
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">Filter by Employee:</label>
+                    <select class="form-select" @bind="SelectedEmployeeId">
+                        <option value="0">All Employees</option>
+                        @if (Employees != null)
+                        {
+                            @foreach (var employee in Employees)
+                            {
+                                <option value="@employee.Id">@employee.Name (@employee.Position.GetDisplayName())</option>
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">Start Date:</label>
+                    <input type="date" class="form-control" @bind="StartDate" />
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">End Date:</label>
+                    <input type="date" class="form-control" @bind="EndDate" />
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-12">
+                    <button class="btn btn-primary" @onclick="ApplyFilters">Apply Filters</button>
+                    <button class="btn btn-secondary ms-2" @onclick="ResetFilters">Reset Filters</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (IsLoading)
+    {
+        <div class="text-center">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    }
+    else if (Records?.Any() != true)
+    {
+        <div class="alert alert-info">
+            No attendance records found for the selected criteria.
+        </div>
+    }
+    else
+    {
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5>Summary</h5>
+                        <p class="mb-1">Total Records: @Records.Count</p>
+                        <p class="mb-1">Total Hours Worked: @Records.Sum(r => r.HoursWorked).ToString("F2")</p>
+                        <p class="mb-1">Average Hours per Day: @Math.Round(Records.Average(r => r.HoursWorked), 2, MidpointRounding.AwayFromZero)</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h5>Status Summary</h5>
+                        <p class="mb-1">On Time: @Records.Count(r => !r.IsLate)</p>
+                        <p class="mb-1">Late: @Records.Count(r => r.IsLate)</p>
+                        <p class="mb-1">Late Rate: @((Records.Count(r => r.IsLate) / (double)Records.Count * 100).ToString("F1"))%</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Employee Name</th>
+                                <th>Position</th>
+                                <th>Date</th>
+                                <th>Check In</th>
+                                <th>Check Out</th>
+                                <th>Hours Worked</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var record in Records)
+                            {
+                                <tr>
+                                    <td>@record.Employee?.Name</td>
+                                    <td>@record.Employee?.Position.GetDisplayName()</td>
+                                    <td>@record.Date.ToString("yyyy-MM-dd")</td>
+                                    <td>@record.CheckIn.ToString("HH:mm")</td>
+                                    <td>@(record.CheckOut?.ToString("HH:mm") ?? "-")</td>
+                                    <td>@record.HoursWorked.ToString("F2")</td>
+                                    <td>
+                                        @if (record.IsLate)
+                                        {
+                                            <span class="badge bg-warning">Late</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-success">On Time</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    .table th {
+        background-color: #f8f9fa;
+        font-weight: 600;
+    }
+
+    .table td {
+        vertical-align: middle;
+    }
+
+    .badge {
+        font-size: 0.9em;
+        padding: 0.5em 0.8em;
+    }
+
+    .form-select, .form-control {
+        border-radius: 0.5rem;
+        border: 1px solid #ced4da;
+    }
+
+    .form-select:focus, .form-control:focus {
+        border-color: #80bdff;
+        box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+    }
+
+    .btn {
+        border-radius: 0.5rem;
+        padding: 0.5rem 1.5rem;
+    }
+
+    .card {
+        border-radius: 1rem;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    }
+</style>
+
+@code {
+    private List<Employee>? Employees { get; set; }
+    private List<Attendance>? Records { get; set; }
+    private int SelectedEmployeeId { get; set; }
+    private DateTime StartDate { get; set; } = DateTime.Today.AddDays(-30); // Default to last 30 days
+    private DateTime EndDate { get; set; } = DateTime.Today;
+    private string? ErrorMessage { get; set; }
+    private bool IsLoading { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadEmployees();
+        await LoadAttendanceRecords();
+    }
+
+    private async Task LoadEmployees()
+    {
+        try
+        {
+            var response = await EmployeeService.GetEmployees();
+            Employees = response.Employees;
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = "Failed to load employees: " + ex.Message;
+        }
+    }
+
+    private async Task LoadAttendanceRecords()
+    {
+        try
+        {
+            IsLoading = true;
+            ErrorMessage = null;
+
+            if (SelectedEmployeeId > 0)
+            {
+                Records = await AttendanceService.GetAttendancesByEmployeeId(SelectedEmployeeId);
+                // Filter by date range
+                Records = Records
+                    .Where(a => a.Date.Date >= StartDate.Date && a.Date.Date <= EndDate.Date)
+                    .OrderByDescending(a => a.Date)
+                    .ToList();
+            }
+            else
+            {
+                Records = await AttendanceService.GetAttendancesByDateRange(StartDate, EndDate);
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = "Failed to load attendance records: " + ex.Message;
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private async Task ApplyFilters()
+    {
+        await LoadAttendanceRecords();
+    }
+
+    private async Task ResetFilters()
+    {
+        SelectedEmployeeId = 0;
+        StartDate = DateTime.Today.AddDays(-30);
+        EndDate = DateTime.Today;
+        await LoadAttendanceRecords();
+    }
+} 

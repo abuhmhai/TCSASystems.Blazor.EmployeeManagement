@@ -1,4 +1,6 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
+﻿@using TCSASystems.Blazor.EmployeeManagement.Models
+
+<div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
         <a class="navbar-brand" href="">Employee Management </a>
         <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
@@ -25,8 +27,13 @@
             </NavLink>
         </div>
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="payroll">
-                <span class="oi oi-calculator" aria-hidden="true"></span> Payroll
+            <NavLink class="nav-link" href="attendance-records">
+                <span class="oi oi-calendar" aria-hidden="true"></span> Attendance Records
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="calculate-payroll">
+                <span class="oi oi-calculator" aria-hidden="true"></span> Calculate Payroll
             </NavLink>
         </div>
         <div class="nav-item px-3">

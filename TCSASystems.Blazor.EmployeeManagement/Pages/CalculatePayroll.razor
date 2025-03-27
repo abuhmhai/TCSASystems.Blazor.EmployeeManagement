@@ -1,0 +1,108 @@
+@page "/calculate-payroll"
+@using TCSASystems.Blazor.EmployeeManagement.Models
+@using static TCSASystems.Blazor.EmployeeManagement.Components.Warning;
+
+@if (ShowWarning)
+{
+    <Warning OnClickCallback="DismissWarning" Type=@Warning_Type Message="@Warning_Message" />
+}
+else
+{
+    <Card>
+        <div class="row user-detail-row">
+            <h3>Calculate Payroll</h3>
+            <div class="form-group">
+                <div class="form-floating mb-3">
+                    <InputSelect shadow rounded id="floatingInput" placeholder="Select Employee" @bind-Value="selectedEmployeeId" class="form-select">
+                        <option value="">Select an employee</option>
+                        @foreach (var employee in employees)
+                        {
+                            <option value="@employee.Id">@employee.Name - @employee.Type.GetDisplayName() @employee.Position.GetDisplayName()</option>
+                        }
+                    </InputSelect>
+                    <label for="floatingInput">Select Employee</label>
+                </div>
+
+                @if (selectedEmployeeId > 0)
+                {
+                    var employee = employees.FirstOrDefault(e => e.Id == selectedEmployeeId);
+                    if (employee != null)
+                    {
+                        <div class="alert alert-info">
+                            <p>Employee: @employee.Name</p>
+                            <p>Position: @employee.Position.GetDisplayName()</p>
+                            <p>Type: @employee.Type.GetDisplayName()</p>
+                            <p>Hourly Rate: $@employee.HourlyRate</p>
+                        </div>
+
+                        <div class="form-floating mb-3">
+                            <InputNumber class="form-control" id="floatingInput" placeholder="Hours Worked" @bind-Value="hoursWorked" />
+                            <label for="floatingInput">Hours Worked</label>
+                        </div>
+
+                        <button class="btn btn-primary" @onclick="CalculateEmployeePayroll">Calculate Payroll</button>
+
+                        @if (calculatedPayroll > 0)
+                        {
+                            <div class="alert alert-success mt-3">
+                                <h4>Payroll Calculation</h4>
+                                <p>Hours Worked: @hoursWorked</p>
+                                <p>Hourly Rate: $@employee.HourlyRate</p>
+                                @if (employee.Type == EmployeeType.FullTime && hoursWorked > 40)
+                                {
+                                    <p>Regular Hours: 40</p>
+                                    <p>Overtime Hours: @(hoursWorked - 40)</p>
+                                    <p>Overtime Rate: $@(employee.HourlyRate * 1.5m)</p>
+                                }
+                                <p><strong>Total Pay: $@calculatedPayroll</strong></p>
+                            </div>
+                        }
+                    }
+                }
+            </div>
+        </div>
+    </Card>
+}
+
+@code {
+    [Inject] private IEmployeeService EmployeeService { get; set; }
+    [Inject] private IPayrollService PayrollService { get; set; }
+    [Inject] private NavigationManager NavigationManager { get; set; }
+
+    private bool ShowWarning = false;
+    private string Warning_Message = "";
+    private WarningType Warning_Type;
+    private List<Employee> employees = new();
+    private int selectedEmployeeId;
+    private int hoursWorked;
+    private decimal calculatedPayroll;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var response = await EmployeeService.GetEmployees();
+        if (response.StatusCode == 200 && response.Employees != null)
+        {
+            employees = response.Employees;
+        }
+        else
+        {
+            ShowWarning = true;
+            Warning_Type = WarningType.Error;
+            Warning_Message = "Failed to load employees";
+        }
+    }
+
+    private void CalculateEmployeePayroll()
+    {
+        var employee = employees.FirstOrDefault(e => e.Id == selectedEmployeeId);
+        if (employee != null)
+        {
+            calculatedPayroll = PayrollService.CalculatePayroll(employee, hoursWorked);
+        }
+    }
+
+    private void DismissWarning()
+    {
+        ShowWarning = false;
+    }
+} 

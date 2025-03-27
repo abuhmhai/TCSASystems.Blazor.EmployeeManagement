@@ -25,11 +25,7 @@ else
                             <label for="floatingInput">Salary</label>
                         </div>
                         <div class="form-floating mb-3">
-                            <InputNumber class="form-control" id="floatingInput" placeholder="Hourly Rate here" @bind-Value="addEmployeeForm.HourlyRate" />
-                            <label for="floatingInput">Hourly Rate</label>
-                        </div>
-                        <div class="form-floating mb-3">
-                            <InputSelect shadow rounded id="floatingInput" placeholder="Employee here" @bind-Value="addEmployeeForm.Type" class="form-select">
+                            <InputSelect shadow rounded id="floatingInput" placeholder="Employee here" @bind-Value="addEmployeeForm.Type" @bind-Value:after="UpdateHourlyRate" class="form-select">
                                 @foreach (EmployeeType type in Enum.GetValues(typeof(EmployeeType)))
                                 {
                                     <option value="@type">@type.GetDisplayName()</option>
@@ -38,13 +34,17 @@ else
                             <label for="floatingInput">Employment Type</label>
                         </div>
                         <div class="form-floating mb-3">
-                            <InputSelect shadow rounded id="floatingInput" placeholder="Position here" @bind-Value="addEmployeeForm.Position" class="form-select">
+                            <InputSelect shadow rounded id="floatingInput" placeholder="Position here" @bind-Value="addEmployeeForm.Position" @bind-Value:after="UpdateHourlyRate" class="form-select">
                                 @foreach (Position position in Enum.GetValues(typeof(Position)))
                                 {
                                     <option value="@position">@position.GetDisplayName()</option>
                                 }
                             </InputSelect>
                             <label for="floatingInput">Position</label>
+                        </div>
+                        <div class="form-floating mb-3">
+                            <InputNumber class="form-control" id="floatingInput" placeholder="Hourly Rate here" @bind-Value="addEmployeeForm.HourlyRate" />
+                            <label for="floatingInput">Hourly Rate (Default: @defaultHourlyRate)</label>
                         </div>
                         <div class="form-floating mb-3">
                             <InputText class="form-control" id="floatingInput" placeholder="Img here" @bind-Value="addEmployeeForm.ImgUrl" />
@@ -58,16 +58,26 @@ else
     </Card>
 }
 
-
 @code {
     [Inject] private IEmployeeService EmployeeService { get; set; }
+    [Inject] private IPayrollService PayrollService { get; set; }
     [Inject] private NavigationManager NavigationManager { get; set; }
 
     private bool ShowWarning = false;
     private string Warning_Message = "";
     private WarningType Warning_Type;
+    private decimal defaultHourlyRate = 50.00m;
 
     private AddEmployeeForm addEmployeeForm = new();
+
+    private void UpdateHourlyRate()
+    {
+        defaultHourlyRate = PayrollService.GetDefaultHourlyRate(addEmployeeForm.Type, addEmployeeForm.Position);
+        if (addEmployeeForm.HourlyRate == 0)
+        {
+            addEmployeeForm.HourlyRate = defaultHourlyRate;
+        }
+    }
 
     private async Task AddNewEmployee()
     {

@@ -18,10 +18,12 @@ public interface IEmployeeService
 public class EmployeeService: IEmployeeService
 {
     private readonly IDbContextFactory<DataContext> _factory;
+    private readonly IPayrollService _payrollService;
 
-    public EmployeeService(IDbContextFactory<DataContext> factory)
+    public EmployeeService(IDbContextFactory<DataContext> factory, IPayrollService payrollService)
     {
         _factory = factory;
+        _payrollService = payrollService;
     }
     public async Task<GetEmployeesResponse> GetEmployees()
     {
@@ -52,13 +54,16 @@ public class EmployeeService: IEmployeeService
         {
             using (var context = _factory.CreateDbContext())
             {
+                var hourlyRate = _payrollService.GetDefaultHourlyRate(form.Type, form.Position);
+                
                 context.Add(new Employee
                 {
                     Name = form.Name,
                     Position = form.Position,
                     Salary = form.Salary,
                     Type = form.Type,
-                    ImgUrl = form.ImgUrl
+                    ImgUrl = form.ImgUrl,
+                    HourlyRate = hourlyRate
                 });
 
                 var result = await context.SaveChangesAsync();

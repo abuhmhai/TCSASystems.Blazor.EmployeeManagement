@@ -43,7 +43,8 @@ public class DataContext : IdentityDbContext
                 Name = faker.Name.FullName(),
                 Salary = GetRandomSalary(random),
                 Type = GetRandomEmployeeType(random),
-                Position = GetRandomPosition(random)
+                Position = GetRandomPosition(random),
+                HourlyRate = GetRandomHourlyRate(random)
             };
 
             employees.Add(employee);
@@ -83,6 +84,11 @@ public class DataContext : IdentityDbContext
     private decimal GetRandomSalary(Random random)
     {
         return random.Next(30000, 100000);
+    }
+
+    private decimal GetRandomHourlyRate(Random random)
+    {
+        return random.Next(15, 50);
     }
 
     private EmployeeType GetRandomEmployeeType(Random random)

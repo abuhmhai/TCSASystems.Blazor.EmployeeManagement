@@ -7,8 +7,7 @@ public class AddEmployeeForm
     [Required]
     public string Name { get; set; }
 
-    [Required]
-    public decimal? Salary { get; set; }
+    public decimal Salary { get; set; } = 0;
 
     [Required]
     public decimal HourlyRate { get; set; }
@@ -19,6 +18,5 @@ public class AddEmployeeForm
     [Required]
     public Position Position { get; set; }
 
-    [Required]
-    public string ImgUrl { get; set; }
+    public string? ImgUrl { get; set; }
 }
